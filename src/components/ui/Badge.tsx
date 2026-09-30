@@ -9,8 +9,8 @@ export const StatusBadge: React.FC<BadgeProps> = ({ status }) => {
   const config = {
     new: {
       label: 'Новый',
-      dot: 'bg-amber-500 dark:bg-amber-400',
-      bg: 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30'
+      dot: 'bg-zinc-500 dark:bg-zinc-400',
+      bg: 'bg-zinc-100 text-zinc-800 border-zinc-300 dark:bg-zinc-800/80 dark:text-zinc-300 dark:border-zinc-700'
     },
     purchased: {
       label: 'Выкуплен',

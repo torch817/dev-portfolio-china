@@ -7,32 +7,32 @@ export const SkillsSection: React.FC = () => {
     {
       title: 'Фронтенд',
       icon: Layout,
-      color: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+      color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700',
       skills: ['React', 'TypeScript', 'Tailwind CSS'],
       desc: 'Адаптивные интерфейсы, PWA, интерактивные формы, калькуляторы и таблицы данных'
     },
     {
       title: 'Бэкенд и данные',
       icon: Server,
-      color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+      color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700',
       skills: ['Node/serverless', 'REST API', 'PostgreSQL / JSON'],
       desc: 'Обработка заказов, серверлесс-функции, отправка уведомлений в Telegram, интеграции'
     },
     {
       title: 'Запуск',
       icon: Rocket,
-      color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700',
       skills: ['Vercel', 'Git', 'CI/CD'],
       desc: 'Развёртывание проектов, настройка доменов, HTTPS, переменных окружения и мониторинг'
     }
   ];
 
   return (
-    <section id="skills" className="py-12 border-t border-slate-200 dark:border-slate-800/80">
+    <section id="skills" className="py-12 border-t border-zinc-200 dark:border-zinc-800/80">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Навыки</h2>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Технологический стек под задачи бизнеса</p>
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Навыки</h2>
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">Технологический стек под задачи бизнеса</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -45,19 +45,19 @@ export const SkillsSection: React.FC = () => {
                     <div className={`p-2 rounded-xl border ${group.color}`}>
                       <Icon className="w-5 h-5" />
                     </div>
-                    <h3 className="font-semibold text-base text-slate-900 dark:text-slate-100">{group.title}</h3>
+                    <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100">{group.title}</h3>
                   </div>
 
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
                     {group.desc}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-200 dark:border-slate-800/60">
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-zinc-200 dark:border-zinc-800/60">
                   {group.skills.map((skill) => (
                     <span
                       key={skill}
-                      className="text-xs font-medium px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60"
+                      className="text-xs font-medium px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700/60"
                     >
                       {skill}
                     </span>

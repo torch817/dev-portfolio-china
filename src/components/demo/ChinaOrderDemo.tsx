@@ -120,20 +120,20 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
   return (
     <div className="py-8 md:py-12 max-w-5xl mx-auto px-4 sm:px-6 space-y-10 animate-fade-in">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs text-cyan-600 hover:text-cyan-500 dark:text-cyan-400 dark:hover:text-cyan-300 mb-2 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 mb-2 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Вернуться на главную</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-3">
-            <ShoppingBag className="w-7 h-7 text-cyan-500 dark:text-cyan-400" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
+            <ShoppingBag className="w-7 h-7 text-zinc-800 dark:text-zinc-200" />
             <span>Демо: «Заказ товаров из Китая»</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1">
             Интерактивный сервис выкупа, автоматического расчёта себестоимости и отслеживания заказов.
           </p>
         </div>
@@ -148,7 +148,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
         {/* Left Form */}
         <div className="lg:col-span-7">
           <Card className="p-6">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mb-4">
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
               Оформить новый заказ на выкуп
             </h2>
 
@@ -168,7 +168,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
 
               {/* Quick Presets */}
               <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">Быстрый выбор:</span>
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Быстрый выбор:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -179,7 +179,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
                     setComment('Партия зимних худи оверсайз (хлопок 420г)');
                     setUrlError('');
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                  className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
                 >
                   1688 (Худи, 45 ¥)
                 </button>
@@ -193,7 +193,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
                     setComment('Беспроводные микрофоны для стриминга K9');
                     setUrlError('');
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                  className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
                 >
                   Taobao (Микрофоны, 120 ¥)
                 </button>
@@ -207,7 +207,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
                     setComment('Кроссовки Nike Air Jordan 1 Low (Оригинал)');
                     setUrlError('');
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-400 border border-slate-200 dark:border-slate-700 transition-colors"
+                  className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
                 >
                   Poizon (Кроссовки, 680 ¥)
                 </button>
@@ -281,7 +281,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
       </div>
 
       {/* Orders Table Section */}
-      <div className="pt-6 border-t border-slate-200 dark:border-slate-800/80">
+      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800/80">
         <OrdersTable orders={orders} />
       </div>
     </div>

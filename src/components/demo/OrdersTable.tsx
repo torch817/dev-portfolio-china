@@ -13,10 +13,10 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Package className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-          <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100">Мои заказы (Тестовые данные)</h3>
+          <Package className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+          <h3 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">Мои заказы (Тестовые данные)</h3>
         </div>
-        <span className="text-xs text-slate-500 dark:text-slate-400">Всего заказов: {orders.length}</span>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">Всего заказов: {orders.length}</span>
       </div>
 
       <Table>
@@ -33,38 +33,38 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
         <tbody>
           {orders.map((order) => (
             <TableRow key={order.id}>
-              <TableCell className="font-mono text-xs text-cyan-600 dark:text-cyan-300 font-medium">
+              <TableCell className="font-mono text-xs text-zinc-900 dark:text-zinc-100 font-semibold">
                 {order.id}
-                <div className="text-[10px] text-slate-500 dark:text-slate-400 font-sans">{order.createdAt}</div>
+                <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-sans font-normal">{order.createdAt}</div>
               </TableCell>
 
               <TableCell className="max-w-[220px]">
-                <div className="font-medium text-xs text-slate-900 dark:text-slate-100 truncate">
+                <div className="font-medium text-xs text-zinc-900 dark:text-zinc-100 truncate">
                   {order.title || 'Товар по ссылке'}
                 </div>
                 <a
                   href={order.itemUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:underline truncate max-w-[200px]"
+                  className="inline-flex items-center gap-1 text-[11px] text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:underline truncate max-w-[200px]"
                 >
                   <span className="truncate">{order.itemUrl}</span>
                   <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               </TableCell>
 
-              <TableCell className="text-center font-mono text-xs text-slate-700 dark:text-slate-200">{order.quantity} шт.</TableCell>
+              <TableCell className="text-center font-mono text-xs text-zinc-700 dark:text-zinc-200">{order.quantity} шт.</TableCell>
 
-              <TableCell className="font-mono text-xs text-slate-700 dark:text-slate-300">{order.weightKg} кг</TableCell>
+              <TableCell className="font-mono text-xs text-zinc-700 dark:text-zinc-300">{order.weightKg} кг</TableCell>
 
-              <TableCell className="font-mono font-semibold text-xs text-slate-900 dark:text-slate-100">
+              <TableCell className="font-mono font-semibold text-xs text-zinc-900 dark:text-zinc-100">
                 {order.totalRub.toLocaleString('ru-RU')} ₽
               </TableCell>
 
               <TableCell>
                 <StatusBadge status={order.status} />
                 {order.trackNumber && (
-                  <div className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 mt-1">
                     Трек: {order.trackNumber}
                   </div>
                 )}
