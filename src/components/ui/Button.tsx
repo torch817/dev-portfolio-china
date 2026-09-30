@@ -14,19 +14,19 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   ...props
 }) => {
-  const base = "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none";
+  const base = "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none";
   
   const variants = {
-    primary: "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/20 focus:ring-cyan-500",
-    secondary: "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700 focus:ring-slate-400 dark:focus:ring-slate-600",
-    outline: "bg-transparent border border-slate-300 hover:bg-slate-100 text-slate-700 dark:border-slate-700 dark:hover:bg-slate-800/60 dark:text-slate-200 focus:ring-slate-400 dark:focus:ring-slate-600",
-    ghost: "bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900 dark:hover:bg-slate-800/40 dark:text-slate-300 dark:hover:text-white focus:ring-slate-400 dark:focus:ring-slate-600"
+    primary: "bg-zinc-900 hover:bg-zinc-800 text-zinc-50 dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-950 shadow-sm focus:ring-zinc-400 dark:focus:ring-zinc-500",
+    secondary: "bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border border-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-700 focus:ring-zinc-400 dark:focus:ring-zinc-600",
+    outline: "bg-transparent border border-zinc-300 hover:bg-zinc-100 text-zinc-800 dark:border-zinc-700 dark:hover:bg-zinc-800/80 dark:text-zinc-200 focus:ring-zinc-400 dark:focus:ring-zinc-600",
+    ghost: "bg-transparent hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 dark:hover:bg-zinc-800/50 dark:text-zinc-400 dark:hover:text-zinc-100 focus:ring-zinc-400 dark:focus:ring-zinc-600"
   };
 
   const sizes = {
     sm: "px-3 py-1.5 text-xs gap-1.5",
     md: "px-4 py-2 text-sm gap-2",
-    lg: "px-6 py-3 text-base gap-2.5"
+    lg: "px-5 py-2.5 text-sm gap-2.5"
   };
 
   return (

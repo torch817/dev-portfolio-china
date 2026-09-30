@@ -17,7 +17,7 @@ export function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <div className="relative min-h-screen flex flex-col justify-between selection:bg-cyan-500/30 selection:text-cyan-200">
+        <div className="relative min-h-screen flex flex-col justify-between selection:bg-zinc-800 selection:text-zinc-100 dark:selection:bg-zinc-200 dark:selection:text-zinc-900">
           <MagicGridBackground />
           <Header currentView={currentView} setCurrentView={setCurrentView} />
 
