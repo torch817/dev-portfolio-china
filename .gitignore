@@ -25,5 +25,6 @@ dist-ssr
 .env
 .env.local
 .omo
+.omh
 test-results
 playwright-report
