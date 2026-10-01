@@ -4,14 +4,23 @@ import { Button } from '../ui/Button';
 
 interface HeaderProps {
   currentView: 'home' | 'demo';
-  setCurrentView: (view: 'home' | 'demo') => void;
+  setCurrentView?: (view: 'home' | 'demo') => void;
+  onNavigate?: (to: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
+export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onNavigate }) => {
+  const navigate = (to: string) => {
+    if (onNavigate) {
+      onNavigate(to);
+    } else if (setCurrentView) {
+      setCurrentView(to === '/demo' ? 'demo' : 'home');
+    }
+  };
+
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (currentView === 'demo') {
       e.preventDefault();
-      setCurrentView('home');
+      navigate('/');
       setTimeout(() => {
         const el = document.querySelector(href);
         el?.scrollIntoView({ behavior: 'smooth' });
@@ -24,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
         <button
           onClick={() => {
-            if (currentView === 'demo') setCurrentView('home');
+            navigate('/');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           className="flex items-center gap-3 text-left group focus:outline-none focus:ring-2 focus:ring-accent-focus rounded-md p-1 -ml-1 transition-colors"
@@ -80,7 +89,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => setCurrentView('demo')}
+                onClick={() => navigate('/demo')}
                 className="gap-2 shrink-0"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
@@ -91,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => setCurrentView('home')}
+              onClick={() => navigate('/')}
               className="gap-2"
             >
               <ArrowLeft className="w-3.5 h-3.5" />

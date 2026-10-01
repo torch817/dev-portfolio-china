@@ -11,10 +11,19 @@ import { defaultPricingConfig, sampleOrders } from '../../config/china-pricing';
 import { ChinaOrder } from '../../types';
 
 interface ChinaOrderDemoProps {
-  onBack: () => void;
+  onBack?: () => void;
+  onNavigate?: (to: string) => void;
 }
 
-export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
+export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNavigate }) => {
+  const handleBack = () => {
+    if (onNavigate) {
+      onNavigate('/');
+    } else if (onBack) {
+      onBack();
+    }
+  };
+
   const { showToast } = useToast();
   const [orders, setOrders] = useState<ChinaOrder[]>(sampleOrders);
 
@@ -123,7 +132,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div>
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 mb-2 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -138,7 +147,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack }) => {
           </p>
         </div>
 
-        <Button variant="outline" size="sm" onClick={onBack}>
+        <Button variant="outline" size="sm" onClick={handleBack}>
           Закрыть демо
         </Button>
       </div>

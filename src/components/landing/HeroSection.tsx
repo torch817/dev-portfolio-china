@@ -3,10 +3,19 @@ import { ArrowRight, ShoppingBag, Send, Code, ShieldCheck, CheckCircle2 } from '
 import { Button } from '../ui/Button';
 
 interface HeroSectionProps {
-  onOpenDemo: () => void;
+  onOpenDemo?: () => void;
+  onNavigate?: (to: string) => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate }) => {
+  const handleOpenDemo = () => {
+    if (onNavigate) {
+      onNavigate('/demo');
+    } else if (onOpenDemo) {
+      onOpenDemo();
+    }
+  };
+
   return (
     <section className="relative py-14 lg:py-20 border-b border-default overflow-hidden">
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8">
@@ -37,7 +46,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo }) => {
               <Button
                 variant="primary"
                 size="lg"
-                onClick={onOpenDemo}
+                onClick={handleOpenDemo}
                 className="gap-2 group"
               >
                 <ShoppingBag className="w-4 h-4" />

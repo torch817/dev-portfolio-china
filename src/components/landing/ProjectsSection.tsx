@@ -4,10 +4,19 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
 interface ProjectsSectionProps {
-  onOpenDemo: () => void;
+  onOpenDemo?: () => void;
+  onNavigate?: (to: string) => void;
 }
 
-export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo }) => {
+export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo, onNavigate }) => {
+  const handleOpenDemo = () => {
+    if (onNavigate) {
+      onNavigate('/demo');
+    } else if (onOpenDemo) {
+      onOpenDemo();
+    }
+  };
+
   const flowSteps = [
     { num: '01', title: 'Ссылка', text: 'Валидация форматов 1688, Taobao и Poizon' },
     { num: '02', title: 'Калькуляция', text: 'Курс 13.8 ₽, 5% сбор, карго 480 ₽/кг' },
@@ -134,7 +143,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo }) 
               <Button
                 variant="primary"
                 size="lg"
-                onClick={onOpenDemo}
+                onClick={handleOpenDemo}
                 className="w-full justify-center gap-2 group/btn"
               >
                 <span>Открыть демо</span>
