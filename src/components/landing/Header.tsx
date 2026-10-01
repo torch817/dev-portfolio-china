@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, Code2 } from 'lucide-react';
+import { ShoppingBag, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/Button';
 
 interface HeaderProps {
@@ -8,61 +8,93 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) => {
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (currentView === 'demo') {
+      e.preventDefault();
+      setCurrentView('home');
+      setTimeout(() => {
+        const el = document.querySelector(href);
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <button 
-          onClick={() => setCurrentView('home')}
-          className="flex items-center gap-2.5 text-left group"
+    <header className="sticky top-0 z-40 w-full border-b border-default bg-canvas/90 backdrop-blur-md">
+      <div className="max-w-[1120px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
+        <button
+          onClick={() => {
+            if (currentView === 'demo') setCurrentView('home');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center gap-3 text-left group focus:outline-none focus:ring-2 focus:ring-accent-focus rounded-md p-1 -ml-1 transition-colors"
+          aria-label="На главную"
         >
-          <div className="w-9 h-9 rounded-xl bg-zinc-900 text-zinc-50 dark:bg-zinc-100 dark:text-zinc-900 flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-md bg-surface text-content-primary border border-default flex items-center justify-center font-bold text-sm shadow-sm group-hover:border-accent-border transition-colors">
             МС
           </div>
           <div>
-            <div className="font-semibold text-sm text-zinc-900 dark:text-zinc-100 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">Михаил Соболев</div>
-            <div className="text-[11px] text-zinc-500 dark:text-zinc-400">Web Developer</div>
+            <div className="font-semibold text-sm text-content-primary group-hover:text-accent transition-colors leading-tight">
+              Михаил Соболев
+            </div>
+            <div className="text-[11px] text-content-muted leading-tight">
+              Веб-разработчик
+            </div>
           </div>
         </button>
 
-        <nav className="flex items-center gap-2 sm:gap-3">
+        <nav className="flex items-center gap-2 sm:gap-4" aria-label="Основная навигация">
           {currentView === 'home' ? (
             <>
-              <a 
-                href="#projects" 
-                className="hidden sm:inline-block px-3 py-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors"
-              >
-                Проекты
-              </a>
-              <a 
-                href="#skills" 
-                className="hidden sm:inline-block px-3 py-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors"
-              >
-                Стек
-              </a>
-              <a 
-                href="#contacts" 
-                className="hidden sm:inline-block px-3 py-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white transition-colors"
-              >
-                Контакты
-              </a>
-              <Button 
-                variant="primary" 
+              <div className="hidden md:flex items-center gap-1">
+                <a
+                  href="#solution"
+                  onClick={(e) => handleNavClick(e, '#solution')}
+                  className="px-3 py-2 text-xs font-medium text-content-secondary hover:text-content-primary transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-accent-focus"
+                >
+                  Решение
+                </a>
+                <a
+                  href="#stack"
+                  onClick={(e) => handleNavClick(e, '#stack')}
+                  className="px-3 py-2 text-xs font-medium text-content-secondary hover:text-content-primary transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-accent-focus"
+                >
+                  Стек
+                </a>
+                <a
+                  href="#approach"
+                  onClick={(e) => handleNavClick(e, '#approach')}
+                  className="px-3 py-2 text-xs font-medium text-content-secondary hover:text-content-primary transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-accent-focus"
+                >
+                  О подходе
+                </a>
+                <a
+                  href="#contacts"
+                  onClick={(e) => handleNavClick(e, '#contacts')}
+                  className="px-3 py-2 text-xs font-medium text-content-secondary hover:text-content-primary transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-accent-focus"
+                >
+                  Контакты
+                </a>
+              </div>
+
+              <Button
+                variant="primary"
                 size="sm"
                 onClick={() => setCurrentView('demo')}
-                className="gap-1.5"
+                className="gap-2 shrink-0"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
                 <span>Демо: Китай</span>
               </Button>
             </>
           ) : (
-            <Button 
-              variant="secondary" 
+            <Button
+              variant="secondary"
               size="sm"
               onClick={() => setCurrentView('home')}
-              className="gap-1.5"
+              className="gap-2"
             >
-              <Code2 className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               <span>Главная</span>
             </Button>
           )}

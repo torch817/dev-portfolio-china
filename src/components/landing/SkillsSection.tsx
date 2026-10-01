@@ -1,63 +1,84 @@
 import React from 'react';
-import { Layout, Server, Rocket } from 'lucide-react';
+import { Layout, Server, Rocket, CheckCircle2 } from 'lucide-react';
 import { Card } from '../ui/Card';
 
 export const SkillsSection: React.FC = () => {
-  const skillGroups = [
+  const stackGroups = [
     {
       title: 'Фронтенд',
       icon: Layout,
-      color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700',
-      skills: ['React', 'TypeScript', 'Tailwind CSS'],
-      desc: 'Адаптивные интерфейсы, PWA, интерактивные формы, калькуляторы и таблицы данных'
+      skills: ['React 18', 'TypeScript', 'Tailwind CSS'],
+      outcome: 'Адаптивные B2B интерфейсы, быстрые формы ввода, калькуляторы логистики и валидация данных.',
+      items: ['Компонентная архитектура', 'Строгая типизация TS', 'Mobile-first адаптивность'],
     },
     {
       title: 'Бэкенд и данные',
       icon: Server,
-      color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700',
-      skills: ['Node/serverless', 'REST API', 'PostgreSQL / JSON'],
-      desc: 'Обработка заказов, серверлесс-функции, отправка уведомлений в Telegram, интеграции'
+      skills: ['Node/serverless', 'REST API', 'JSON / Telegram API'],
+      outcome: 'Надёжная обработка заявок, бессерверные микросервисы, мгновенные пуш-уведомления заказчику.',
+      items: ['Vercel Serverless Functions', 'Интеграция Telegram Bot API', 'Серверная валидация ссылок'],
     },
     {
       title: 'Запуск',
       icon: Rocket,
-      color: 'text-zinc-700 bg-zinc-100 border-zinc-200 dark:text-zinc-200 dark:bg-zinc-800/80 dark:border-zinc-700',
       skills: ['Vercel', 'Git', 'CI/CD'],
-      desc: 'Развёртывание проектов, настройка доменов, HTTPS, переменных окружения и мониторинг'
-    }
+      outcome: 'Быстрый деплой под ключ, автоматические сборки, настройка доменов, HTTPS и мониторинг доступности.',
+      items: ['Автоматический CI/CD пайплайн', 'Контроль размера бандла', 'Zero-config HTTPS и DNS'],
+    },
   ];
 
   return (
-    <section id="skills" className="py-12 border-t border-zinc-200 dark:border-zinc-800/80">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Навыки</h2>
-          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">Технологический стек под задачи бизнеса</p>
+    <section id="stack" className="py-14 lg:py-20 border-b border-default bg-canvas scroll-mt-16">
+      <div className="max-w-[1120px] mx-auto px-5 sm:px-8 space-y-8">
+        <div>
+          <div className="text-xs uppercase tracking-wider text-accent font-mono mb-2">
+            Технологический стек
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-content-primary">
+            Стек и компетенции
+          </h2>
+          <p className="text-sm text-content-secondary mt-1 max-w-xl">
+            Стек инструментов, ориентированный на надёжность, скорость разработки и решение бизнес-задач
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {skillGroups.map((group) => {
+          {stackGroups.map((group) => {
             const Icon = group.icon;
             return (
-              <Card key={group.title} className="flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`p-2 rounded-xl border ${group.color}`}>
+              <Card
+                key={group.title}
+                className="p-6 bg-surface border-default flex flex-col justify-between space-y-6 shadow-card"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-md bg-raised border border-default text-accent">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100">{group.title}</h3>
+                    <h3 className="font-semibold text-base text-content-primary">
+                      {group.title}
+                    </h3>
                   </div>
 
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4 leading-relaxed">
-                    {group.desc}
+                  <p className="text-xs text-content-secondary leading-relaxed">
+                    {group.outcome}
                   </p>
+
+                  <div className="space-y-1.5 pt-1 text-xs text-content-muted">
+                    {group.items.map((it) => (
+                      <div key={it} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-accent shrink-0" />
+                        <span>{it}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-zinc-200 dark:border-zinc-800/60">
+                <div className="flex flex-wrap gap-1.5 pt-4 border-t border-default/60">
                   {group.skills.map((skill) => (
                     <span
                       key={skill}
-                      className="text-xs font-medium px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700/60"
+                      className="text-xs font-mono font-medium px-2.5 py-1 rounded-sm bg-raised text-content-primary border border-default"
                     >
                       {skill}
                     </span>
