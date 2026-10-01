@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" fill="none">
+  <!-- Page Canvas -->
+  <rect width="1200" height="630" fill="#090b10" />
+
+  <!-- Inner Raised Card -->
+  <rect x="60" y="60" width="1080" height="510" rx="20" fill="#0f131a" stroke="#26303d" stroke-width="2" />
+
+  <!-- Monogram Badge -->
+  <rect x="120" y="115" width="60" height="60" rx="14" fill="#151b24" stroke="#26303d" stroke-width="2" />
+  <text x="150" y="153" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700" fill="#f1f5f9" text-anchor="middle">МС</text>
+
+  <!-- Tagline Pill -->
+  <rect x="200" y="125" width="370" height="40" rx="8" fill="#151b24" stroke="#26303d" stroke-width="1.5" />
+  <circle cx="222" cy="145" r="4.5" fill="#3b82f6" />
+  <text x="238" y="150" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" fill="#b3bfce">B2B заказы и e-commerce разработка</text>
+
+  <!-- Main Name & Headings -->
+  <text x="120" y="255" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="700" fill="#f1f5f9" letter-spacing="-0.03em">Михаил Соболев</text>
+  <text x="120" y="315" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600" fill="#3b82f6">Веб-разработчик сайтов и сервисов для приёма заказов</text>
+  <text x="120" y="375" font-family="Inter, system-ui, sans-serif" font-size="21" font-weight="400" fill="#b3bfce">Интерактивный сервис выкупа и расчёта поставок из Китая (1688 / Taobao / Poizon)</text>
+
+  <!-- Bottom Technical Strip -->
+  <line x1="120" y1="455" x2="1080" y2="455" stroke="#26303d" stroke-width="1.5" />
+  <text x="120" y="500" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="16" fill="#748196">React 18 · TypeScript · Tailwind CSS · Serverless API · Vercel</text>
+  <text x="1080" y="500" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="16" font-weight="600" fill="#3b82f6" text-anchor="end">Telegram: @whhwheqkkwk</text>
+</svg>

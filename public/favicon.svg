@@ -1,10 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <defs>
-    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#06b6d4" />
-      <stop offset="100%" stop-color="#2563eb" />
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="8" fill="url(#brandGrad)" />
-  <path d="M7 23V9h3.5l4.5 7.5L19.5 9H23v14h-3v-8.5l-4 6.5h-2l-4-6.5V23H7z" fill="#ffffff" />
+  <rect width="32" height="32" rx="8" fill="#090b10" stroke="#26303d" stroke-width="1.5" />
+  <circle cx="26" cy="6" r="2.5" fill="#3b82f6" />
+  <text
+    x="16"
+    y="21"
+    font-family="Inter, system-ui, -apple-system, sans-serif"
+    font-size="13"
+    font-weight="700"
+    fill="#f1f5f9"
+    text-anchor="middle"
+    letter-spacing="-0.04em"
+  >МС</text>
 </svg>
