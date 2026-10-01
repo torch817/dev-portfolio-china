@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShoppingBag, Code2 } from 'lucide-react';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { Button } from '../ui/Button';
 
 interface HeaderProps {
@@ -67,8 +66,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView }) =
               <span>Главная</span>
             </Button>
           )}
-
-          <ThemeToggle />
         </nav>
       </div>
     </header>
