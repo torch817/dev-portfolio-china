@@ -28,3 +28,4 @@ dist-ssr
 .omh
 test-results
 playwright-report
+.vercel
