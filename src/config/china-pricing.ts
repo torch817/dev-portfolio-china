@@ -1,13 +1,12 @@
-import { PricingConfig } from '../types';
+import type { PricingConfig, ChinaOrder } from '../types/index.ts';
 
 export const defaultPricingConfig: PricingConfig = {
   cnyToRubRate: 13.8, // 1 ¥ = 13.8 ₽
   commissionPercent: 5, // 5% комиссия сервиса
   shippingPerKgRub: 480, // 480 ₽ за кг (Авто-карго из Гуанчжоу/Иу)
-  insurancePercent: 2, // 2% страховка груза
 };
 
-export const sampleOrders = [
+export const sampleOrders: ChinaOrder[] = [
   {
     id: "CN-89412",
     itemUrl: "https://detail.1688.com/offer/71239841.html",
@@ -15,18 +14,18 @@ export const sampleOrders = [
     cnyPrice: 45,
     quantity: 50,
     weightKg: 28,
-    totalRub: 47285,
+    totalRub: 46043,
     breakdown: {
       goodsCostRub: 31050,
-      commissionRub: 1552,
+      commissionRub: 1553,
       shippingRub: 13440,
       exchangeRate: 13.8,
       commissionPercent: 5,
-      shippingPerKgRub: 480
+      shippingPerKgRub: 480,
     },
-    status: "in_warehouse" as const,
+    status: "in_warehouse",
     createdAt: "2026-09-28 14:20",
-    trackNumber: "CG-GZ-99214"
+    trackNumber: "CG-GZ-99214",
   },
   {
     id: "CN-89408",
@@ -42,11 +41,11 @@ export const sampleOrders = [
       shippingRub: 1680,
       exchangeRate: 13.8,
       commissionPercent: 5,
-      shippingPerKgRub: 480
+      shippingPerKgRub: 480,
     },
-    status: "shipped" as const,
+    status: "shipped",
     createdAt: "2026-09-27 11:05",
-    trackNumber: "CG-YW-55102"
+    trackNumber: "CG-YW-55102",
   },
   {
     id: "CN-89395",
@@ -55,18 +54,18 @@ export const sampleOrders = [
     cnyPrice: 680,
     quantity: 2,
     weightKg: 2.4,
-    totalRub: 21183,
+    totalRub: 20858,
     breakdown: {
       goodsCostRub: 18768,
       commissionRub: 938,
       shippingRub: 1152,
       exchangeRate: 13.8,
       commissionPercent: 5,
-      shippingPerKgRub: 480
+      shippingPerKgRub: 480,
     },
-    status: "delivered" as const,
+    status: "delivered",
     createdAt: "2026-09-24 09:40",
-    trackNumber: "CDEK-14920412"
+    trackNumber: "CDEK-14920412",
   },
   {
     id: "CN-89420",
@@ -75,17 +74,17 @@ export const sampleOrders = [
     cnyPrice: 8.5,
     quantity: 200,
     weightKg: 12,
-    totalRub: 30429,
+    totalRub: 30393,
     breakdown: {
       goodsCostRub: 23460,
       commissionRub: 1173,
       shippingRub: 5760,
       exchangeRate: 13.8,
       commissionPercent: 5,
-      shippingPerKgRub: 480
+      shippingPerKgRub: 480,
     },
-    status: "purchased" as const,
+    status: "purchased",
     createdAt: "2026-09-29 18:15",
-    trackNumber: "CG-GZ-10492"
-  }
+    trackNumber: "CG-GZ-10492",
+  },
 ];

@@ -23,8 +23,7 @@ export interface ChinaOrder {
 }
 
 export interface PricingConfig {
-  cnyToRubRate: number; // e.g. 13.5
-  commissionPercent: number; // e.g. 7%
-  shippingPerKgRub: number; // e.g. 450 rub / kg
-  insurancePercent: number; // e.g. 2%
+  cnyToRubRate: number; // 13.8 ₽ / ¥
+  commissionPercent: number; // 5%
+  shippingPerKgRub: number; // 480 ₽ / kg
 }

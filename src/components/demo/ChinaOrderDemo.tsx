@@ -9,6 +9,7 @@ import { OrdersTable } from './OrdersTable';
 import { useToast } from '../../context/ToastContext';
 import { defaultPricingConfig, sampleOrders } from '../../config/china-pricing';
 import { ChinaOrder } from '../../types';
+import { validateMarketplaceUrl } from '../../utils/urlValidation';
 
 interface ChinaOrderDemoProps {
   onBack?: () => void;
@@ -36,46 +37,33 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [urlError, setUrlError] = useState('');
 
-  const normalizeUrl = (raw: string): string => {
-    const trimmed = raw.trim();
-    if (!trimmed) return '';
-    if (!/^https?:\/\//i.test(trimmed)) {
-      return `https://${trimmed}`;
-    }
-    return trimmed;
-  };
-
-  const validateUrl = (url: string) => {
-    const trimmed = url.trim();
-    if (!trimmed) {
-      setUrlError('Введите ссылку на товар');
-      return false;
-    }
-    try {
-      const normalized = normalizeUrl(trimmed);
-      const parsed = new URL(normalized);
-      if (!/(1688\.com|taobao\.com|tmall\.com|poizon\.com|dewu\.com)/i.test(parsed.hostname)) {
-        setUrlError('Поддерживаются ссылки на 1688, Taobao, Tmall, Poizon (Dewu)');
-        return false;
-      }
+  const handleUrlChange = (val: string) => {
+    setItemUrl(val);
+    const res = validateMarketplaceUrl(val);
+    if (!res.isValid) {
+      setUrlError(res.error || 'Некорректная ссылка');
+    } else {
       setUrlError('');
-      return true;
-    } catch {
-      setUrlError('Некорректный формат URL (пример: https://detail.1688.com/...)');
-      return false;
     }
   };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateUrl(itemUrl)) return;
+
+    const validation = validateMarketplaceUrl(itemUrl);
+    if (!validation.isValid) {
+      setUrlError(validation.error || 'Некорректная ссылка');
+      showToast('Ошибка валидации', validation.error || 'Проверьте ссылку на товар', 'error');
+      return;
+    }
+
     if (cnyPrice <= 0 || quantity <= 0 || weightKg <= 0) {
       showToast('Ошибка данных', 'Цена, количество и вес должны быть больше 0', 'error');
       return;
     }
 
     setIsSubmitting(true);
-    const finalUrl = normalizeUrl(itemUrl);
+    const finalUrl = validation.normalizedUrl || itemUrl;
 
     const goodsCostRub = Math.round(cnyPrice * quantity * defaultPricingConfig.cnyToRubRate);
     const commissionRub = Math.round(goodsCostRub * (defaultPricingConfig.commissionPercent / 100));
@@ -85,7 +73,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
     const newOrder: ChinaOrder = {
       id: `CN-${Math.floor(10000 + Math.random() * 90000)}`,
       itemUrl: finalUrl,
-      title: comment ? `Заказ: ${comment.slice(0, 35)}...` : 'Товар из Китая',
+      title: comment ? `Заказ: ${comment.slice(0, 35)}...` : `Товар ${validation.platform || 'Китай'}`,
       cnyPrice,
       quantity,
       weightKg,
@@ -97,67 +85,81 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
         shippingRub,
         exchangeRate: defaultPricingConfig.cnyToRubRate,
         commissionPercent: defaultPricingConfig.commissionPercent,
-        shippingPerKgRub: defaultPricingConfig.shippingPerKgRub
+        shippingPerKgRub: defaultPricingConfig.shippingPerKgRub,
       },
       status: 'new',
       createdAt: 'Сегодня, только что',
-      trackNumber: 'В обработке'
+      trackNumber: 'В обработке',
     };
 
     try {
-      // Send to serverless API endpoint (with graceful fallback if not deployed on Vercel)
-      await fetch('/api/order', {
+      const response = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newOrder)
-      }).catch(() => null);
+        body: JSON.stringify(newOrder),
+      });
 
-      setOrders(prev => [newOrder, ...prev]);
+      if (!response.ok) {
+        if (response.status === 400 || response.status === 422) {
+          const errData = await response.json().catch(() => ({}));
+          showToast('Ошибка валидации', errData.error || 'Параметры заказа отклонены сервером', 'error');
+        } else {
+          showToast('Ошибка сервиса', 'Сервер вернул ошибку при приёме заказа. Повторите попытку.', 'error');
+        }
+        return;
+      }
+
+      // Append order only on verified 2xx response
+      setOrders((prev) => [newOrder, ...prev]);
       showToast(
         'Заказ успешно оформлен!',
         `Номер заказа ${newOrder.id} на сумму ${totalRub.toLocaleString('ru-RU')} ₽ принят в обработку.`,
         'success'
       );
       setComment('');
-    } catch (err) {
-      showToast('Ошибка оформления', 'Не удалось отправить заказ', 'error');
+    } catch {
+      showToast(
+        'Сетевая ошибка',
+        'Не удалось связаться с сервером заказов. Проверьте соединение и повторите попытку.',
+        'error'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="py-8 md:py-12 max-w-5xl mx-auto px-4 sm:px-6 space-y-10 animate-fade-in">
+    <div className="py-8 md:py-12 max-w-[1120px] mx-auto px-5 sm:px-8 space-y-10 animate-fade-in">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-default">
         <div>
           <button
             onClick={handleBack}
-            className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 mb-2 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs text-content-muted hover:text-content-primary mb-2 transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus rounded px-1 -ml-1"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Вернуться на главную</span>
           </button>
-          <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
-            <ShoppingBag className="w-7 h-7 text-zinc-800 dark:text-zinc-200" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-content-primary flex items-center gap-3">
+            <ShoppingBag className="w-7 h-7 text-accent" />
             <span>Демо: «Заказ товаров из Китая»</span>
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-content-secondary mt-1">
             Интерактивный сервис выкупа, автоматического расчёта себестоимости и отслеживания заказов.
           </p>
         </div>
 
-        <Button variant="outline" size="sm" onClick={handleBack}>
+        <Button variant="outline" size="sm" onClick={handleBack} className="shrink-0 self-start sm:self-auto">
           Закрыть демо
         </Button>
       </div>
 
       {/* Main Grid: Form + Calculator */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Form */}
         <div className="lg:col-span-7">
-          <Card className="p-6">
-            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+          <Card className="p-6 bg-surface border-default shadow-card">
+            <h2 className="text-base font-semibold text-content-primary mb-4">
               Оформить новый заказ на выкуп
             </h2>
 
@@ -166,18 +168,15 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
                 label="Ссылка на товар (1688 / Taobao / Poizon) *"
                 placeholder="https://detail.1688.com/offer/..."
                 value={itemUrl}
-                onChange={(e) => {
-                  setItemUrl(e.target.value);
-                  validateUrl(e.target.value);
-                }}
+                onChange={(e) => handleUrlChange(e.target.value)}
                 error={urlError}
-                hint="Система автоматически определит площадку и сохранит карточку"
+                hint="Поддерживаются площадки 1688, Taobao, Tmall и Poizon (Dewu)"
                 required
               />
 
               {/* Quick Presets */}
               <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
-                <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Быстрый выбор:</span>
+                <span className="text-[11px] text-content-muted">Быстрый выбор:</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -188,7 +187,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
                     setComment('Партия зимних худи оверсайз (хлопок 420г)');
                     setUrlError('');
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
+                  className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
                 >
                   1688 (Худи, 45 ¥)
                 </button>
@@ -202,7 +201,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
                     setComment('Беспроводные микрофоны для стриминга K9');
                     setUrlError('');
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
+                  className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
                 >
                   Taobao (Микрофоны, 120 ¥)
                 </button>
@@ -216,7 +215,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
                     setComment('Кроссовки Nike Air Jordan 1 Low (Оригинал)');
                     setUrlError('');
                   }}
-                  className="text-[11px] px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-700 transition-colors"
+                  className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
                 >
                   Poizon (Кроссовки, 680 ¥)
                 </button>
@@ -290,7 +289,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
       </div>
 
       {/* Orders Table Section */}
-      <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800/80">
+      <div className="pt-6 border-t border-default">
         <OrdersTable orders={orders} />
       </div>
     </div>
