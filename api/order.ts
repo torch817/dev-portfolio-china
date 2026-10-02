@@ -1,7 +1,45 @@
-import { validateMarketplaceUrl } from '../src/utils/urlValidation.ts';
-
+const ALLOWED_DOMAINS = ['1688.com', 'taobao.com', 'tmall.com', 'poizon.com', 'dewu.com'] as const;
 const MAX_PAYLOAD_BYTES = 10 * 1024; // 10 KB limit
 const TELEGRAM_TIMEOUT_MS = 5000; // 5 seconds bounded timeout
+
+function validateUrl(rawUrl: string): { isValid: boolean; error?: string; normalizedUrl?: string; platform?: string } {
+  const trimmed = (rawUrl || '').trim();
+  if (!trimmed) return { isValid: false, error: 'Введите ссылку на товар' };
+
+  let normalized = trimmed;
+  if (!/^https?:\/\//i.test(normalized)) {
+    normalized = `https://${normalized}`;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(normalized);
+  } catch {
+    return { isValid: false, error: 'Некорректный формат URL' };
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return { isValid: false, error: 'Поддерживаются только http и https' };
+  }
+
+  // Reject custom ports for security
+  if (parsed.port && parsed.port !== '80' && parsed.port !== '443') {
+    return { isValid: false, error: 'Ссылки с нестандартными портами не поддерживаются' };
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  const matched = ALLOWED_DOMAINS.find(d => hostname === d || hostname.endsWith(`.${d}`));
+  if (!matched) {
+    return { isValid: false, error: 'Поддерживаются ссылки только на 1688, Taobao, Tmall и Poizon (Dewu)' };
+  }
+
+  let platform = '1688';
+  if (hostname.includes('taobao')) platform = 'Taobao';
+  else if (hostname.includes('tmall')) platform = 'Tmall';
+  else if (hostname.includes('poizon') || hostname.includes('dewu')) platform = 'Poizon';
+
+  return { isValid: true, normalizedUrl: normalized, platform };
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
@@ -32,7 +70,7 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'Invalid order payload' });
   }
 
-  // 2. Schema validation
+  // 2. Schema validation: required numeric fields cnyPrice > 0, quantity >= 1, weightKg > 0
   const cnyPrice = Number(order.cnyPrice);
   const quantity = Number(order.quantity);
   const weightKg = Number(order.weightKg);
@@ -53,7 +91,7 @@ export default async function handler(req: any, res: any) {
   }
 
   // 3. Strict Marketplace Domain Validation
-  const validation = validateMarketplaceUrl(order.itemUrl);
+  const validation = validateUrl(order.itemUrl);
   if (!validation.isValid) {
     return res.status(400).json({
       error: validation.error || 'Unsupported marketplace platform or invalid URL',
@@ -115,11 +153,18 @@ export default async function handler(req: any, res: any) {
         orderId: safeId,
       });
     }
+
+    return res.status(200).json({
+      success: true,
+      orderId: safeId,
+      platform: validation.platform,
+    });
   }
 
   return res.status(200).json({
     success: true,
     orderId: safeId,
     platform: validation.platform,
+    mode: 'demo',
   });
 }
