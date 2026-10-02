@@ -1,5 +1,14 @@
 export type OrderStatus = 'new' | 'purchased' | 'in_warehouse' | 'shipped' | 'delivered';
 
+export type DeliveryTariffId = 'regular-auto' | 'express-auto' | 'air';
+
+export interface DeliveryTariff {
+  id: DeliveryTariffId;
+  name: string;
+  days: string;
+  ratePerKgRub: number;
+}
+
 export interface ChinaOrder {
   id: string;
   itemUrl: string;
@@ -20,6 +29,8 @@ export interface ChinaOrder {
   status: OrderStatus;
   createdAt: string;
   trackNumber?: string;
+  tariffId?: DeliveryTariffId;
+  woodenCrate?: boolean;
 }
 
 export interface PricingConfig {

@@ -1,4 +1,12 @@
-import type { PricingConfig, ChinaOrder } from '../types/index.ts';
+import type { PricingConfig, ChinaOrder, DeliveryTariff } from '../types/index.ts';
+
+export const deliveryTariffs: DeliveryTariff[] = [
+  { id: 'regular-auto', name: 'Обычное авто', days: '18–25 дней', ratePerKgRub: 380 },
+  { id: 'express-auto', name: 'Экспресс-авто', days: '13–15 дней', ratePerKgRub: 480 },
+  { id: 'air', name: 'Авиа', days: '5–8 дней', ratePerKgRub: 850 },
+];
+
+export const WOODEN_CRATE_PRICE_RUB = 300;
 
 export const defaultPricingConfig: PricingConfig = {
   cnyToRubRate: 13.8, // 1 ¥ = 13.8 ₽
