@@ -18,16 +18,16 @@ export const SkillsSection: React.FC<SkillsSectionProps> = ({ className = '' }) 
     {
       title: 'Бэкенд и данные',
       icon: Server,
-      skills: ['Node/serverless', 'REST API', 'JSON / Telegram API'],
-      outcome: 'Надёжная обработка заявок, бессерверные микросервисы, мгновенные пуш-уведомления заказчику.',
-      items: ['Vercel Serverless Functions', 'Интеграция Telegram Bot API', 'Серверная валидация ссылок'],
+      skills: ['Node.js', 'REST API', 'JSON / Telegram API'],
+      outcome: 'Надёжная обработка заявок, микросервисы и серверные API, мгновенные пуш-уведомления заказчику.',
+      items: ['Node.js & Serverless API', 'Интеграция Telegram Bot API', 'Серверная валидация данных'],
     },
     {
-      title: 'Запуск',
+      title: 'Запуск и инфраструктура',
       icon: Rocket,
-      skills: ['Vercel', 'Git', 'CI/CD'],
-      outcome: 'Быстрый деплой под ключ, автоматические сборки, настройка доменов, HTTPS и мониторинг доступности.',
-      items: ['Автоматический CI/CD пайплайн', 'Контроль размера бандла', 'Zero-config HTTPS и DNS'],
+      skills: ['Linux / VPS', 'Docker & CI/CD', 'Nginx & SSL', 'Git'],
+      outcome: 'Боевой деплой на продакшен-серверы, контейнеризация, настройка доменов, HTTPS/SSL, автоматизация релизов и мониторинг.',
+      items: ['Автоматический CI/CD пайплайн', 'Контроль размера бандла', 'Настройка Nginx и SSL'],
     },
   ];
 

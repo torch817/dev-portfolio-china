@@ -27,8 +27,8 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await page.goto('/');
 
     await expect(page.locator('h1')).toContainText('Михаил Соболев');
-    await expect(page.getByText('Веб-разработчик: сайты и сервисы для приёма заказов')).toBeVisible();
-    await expect(page.getByText('Делаю быстрые, понятные сайты под задачу: от макета до запуска')).toBeVisible();
+    await expect(page.getByText('Веб-разработчик: современные сайты и сервисы под ключ')).toBeVisible();
+    await expect(page.getByText('Делаю быстрые, понятные сайты и веб-сервисы под задачу: от макета до боевого запуска')).toBeVisible();
     await expect(page.getByText('Открыт к B2B заказам и разработке сервисов')).toBeVisible();
   });
 

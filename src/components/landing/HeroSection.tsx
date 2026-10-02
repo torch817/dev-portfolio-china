@@ -34,10 +34,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
               Михаил Соболев
             </h1>
             <p className="text-lg sm:text-xl font-medium text-content-secondary leading-snug">
-              Веб-разработчик: сайты и сервисы для приёма заказов
+              Веб-разработчик: современные сайты и сервисы под ключ
             </p>
             <p className="text-sm sm:text-base text-content-muted leading-relaxed max-w-xl">
-              Делаю быстрые, понятные сайты под задачу: от макета до запуска.
+              Делаю быстрые, понятные сайты и веб-сервисы под задачу: от макета до боевого запуска.
             </p>
           </div>
 
@@ -83,11 +83,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
           <div className="pt-4 flex items-center gap-6 text-xs text-content-muted">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-              <span>1688 / Taobao / Poizon flow</span>
+              <span>1688 / Taobao / Poizon демо</span>
             </div>
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-accent" />
-              <span>Vercel + Telegram API</span>
+              <span>Боевой деплой: Linux, CI/CD, API</span>
             </div>
           </div>
         </div>

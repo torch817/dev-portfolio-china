@@ -95,7 +95,7 @@ export const ContactsSection: React.FC<ContactsSectionProps> = ({ className = ''
               <span>Быстрый старт проекта</span>
             </div>
             <h3 className="text-lg sm:text-xl font-bold text-content-primary">
-              Есть проект или задача по автоматизации заказов?
+              Есть проект или задача по разработке сайта или веб-сервиса?
             </h3>
             <p className="text-xs sm:text-sm text-content-secondary leading-relaxed">
               Напишите в Telegram: отвечу в течение дня, обсудим требования и предложу оптимальный стек и сроки.
