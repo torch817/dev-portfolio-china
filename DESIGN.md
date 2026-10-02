@@ -1,6 +1,6 @@
-# DESIGN.md — v2 Design System & Implementation Contract
+# DESIGN.md — v2/v3 Design System & Implementation Contract
 
-This document is the authoritative visual and structural specification for the v2 rebuild of the developer portfolio and China sourcing application. All tasks T2–T12 implement strictly what is defined here. The design is **dark-only with a single restrained blue accent** (`#3b82f6`).
+This document is the authoritative visual and structural specification for the v2/v3 rebuild of the developer portfolio and China sourcing application. All tasks implement strictly what is defined here. The design is **dark-only with a single restrained blue accent** (`#3b82f6`).
 
 ## 0. Explicit Removals from v1
 
@@ -106,17 +106,18 @@ Self-hosted `Inter` subset or system sans stack; numeric figures and tracking ID
 - **Reduced motion**: Respect `prefers-reduced-motion: reduce` by disabling transforms, transitions, and animations.
 - **Elevation**: Border-first architecture. `--shadow-card` (`0 8px 30px rgba(0,0,0,.18)`) is used exclusively on featured surfaces; glow effects are prohibited.
 
-## 5. Landing Page Information Architecture (8 Ordered Sections)
+## 5. Landing Page Information Architecture (7 Ordered Sections in R3)
 
 Landing sections must render in this exact sequence:
-1. **Header / navigation** — wordmark `МС`, anchors `Решение`, `Стек`, `О подходе`, `Контакты`, and a single blue action `Демо: Китай`. On mobile use an accessible compact menu or demo action only; no theme toggle.
-2. **Hero / positioning** — left-aligned identity: `Михаил Соболев`, role `Веб-разработчик: сайты и сервисы для приёма заказов`, subtitle `Делаю быстрые, понятные сайты под задачу: от макета до запуска`, status `Открыт к B2B заказам и разработке сервисов`, CTAs `Посмотреть демо` → `/demo` and Telegram. Restrained right-side order-summary panel derived from real demo facts, without decorative gradients.
-3. **Proof strip / operating model** — three concise facts: `B2B и e-commerce`, `От макета до запуска`, `Приём заказов и уведомления`.
-4. **Featured solution** — one wide case card titled `Демо: сервис заказов из Китая (1688 / Taobao / Poizon)` with problem, flow (link → calculation → Telegram → statuses), stack, and `/demo` CTA.
-5. **Stack / capabilities** — three groups: `Фронтенд`, `Бэкенд и данные`, `Запуск`, with concrete technologies and business outcomes.
-6. **Approach / about** — concise business block: B2B development, order-intake automation, reliable architecture, turnkey delivery, structured as three numbered principles.
-7. **Contact / conversion** — direct Telegram (`@whhwheqkkwk`), Email (`ob0lev@yandex.ru`), GitHub (`torch817`) cards without a form, plus final Telegram CTA.
-8. **Footer** — copyright and direct links; no redundant controls.
+1. **Header / navigation** — sticky header (`z-50`, backdrop-blur, subtle bottom border), wordmark `МС`, anchors `Решение` (`#solution`), `Стек` (`#skills`), `О подходе` (`#about`), `Контакты` (`#contacts`), and a single blue action `Демо: Китай`. On mobile use an accessible compact menu or demo action only; no theme toggle. All anchor targets use `scroll-margin-top: 80px`.
+2. **Hero / positioning** — left-aligned single-column clean layout: `Михаил Соболев`, role `Веб-разработчик: сайты и сервисы для приёма заказов`, subtitle `Делаю быстрые, понятные сайты под задачу: от макета до запуска`, status `Открыт к B2B заказам и разработке сервисов`, CTAs `Посмотреть демо` → `/demo` and Telegram. Features subtle animated background (`BackgroundBeams.tsx`, pure CSS keyframes/canvas particles/grid in dark palette with `#3b82f6` accent, disabled when `prefers-reduced-motion: reduce`). The former right-side \"Сводка выкупа Китая\" panel is removed.
+3. **Featured solution (`#solution`)** — one wide case card titled `Демо: сервис заказов из Китая (1688 / Taobao / Poizon)` with problem, flow (link → calculation → Telegram → statuses), stack, and `/demo` CTA.
+4. **Stack / capabilities (`#skills`)** — three groups: `Фронтенд`, `Бэкенд и данные`, `Запуск`, with concrete technologies and business outcomes.
+5. **Approach / about (`#about`)** — concise business block: B2B development, order-intake automation, reliable architecture, turnkey delivery, structured as three numbered principles.
+6. **Contact / conversion (`#contacts`)** — direct Telegram (`@whhwheqkkwk`), Email (`ob0lev@yandex.ru`), GitHub (`torch817`) cards without a form, plus final Telegram CTA.
+7. **Footer** — copyright and direct links; no redundant controls.
+
+*(Note: The former Proof strip / \"Сводка выкупа Китая\" is completely removed per Founder R3 requirements).*
 
 ## 6. Routing Architecture — `/demo` as a Real Pathname Route
 
@@ -146,3 +147,23 @@ Landing sections must render in this exact sequence:
 - Cargo logistics: `480 ₽/kg`
 - Allowed marketplace sources: `1688`, `Taobao`, `Poizon` (exact host allowlist shared between client and server)
 - The 2% insurance field is removed from calculation and UI.
+
+## 9. R3 Specific Implementation Constraints
+
+1. **Animated Background (`BackgroundBeams.tsx`)**:
+   - Implemented via pure CSS keyframes or lightweight Canvas particles/grid.
+   - Strictly NO `framer-motion` (banned to preserve 21.1 kB bundle margin).
+   - Monochromatic dark background (`--color-bg`, `#090b10`) with subtle blue particles/beams (`#3b82f6`).
+   - Automatically pauses or renders static state when `prefers-reduced-motion: reduce`.
+
+2. **Calculator Enhancements (`OrderChart.tsx`, `OrderCalculator.tsx`)**:
+   - Visual breakdown chart: Native SVG with responsive `viewBox`, `role="img"`, and `aria-label`. Banned: `recharts`.
+   - Live exchange rate toggle: Standard React `useState` + `useMemo` for rates 13.5 / 13.8 / 14.2 ₽/¥.
+   - Competitor comparison table: Shows comparison between Our service, Competitor A, Competitor B for sample order (35 ¥ × 10 pcs, 2.5 kg).
+   - Mobile table strategy: On screens < 640px, uses card layout or scoped container with horizontal scroll (`overflow-x: auto`), maintaining 0 global page overflow.
+   - Calculation history: Saves last 3–5 calculations in local component state with quick reload button.
+
+3. **Performance Budgets (Hard Limits)**:
+   - JavaScript bundle: < 90 kB gzip (strictly verified via `scripts/check-budgets.sh`).
+   - CSS bundle: < 12 kB gzip.
+
