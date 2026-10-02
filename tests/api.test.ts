@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import healthHandler from '../api/health.ts';
 import orderHandler from '../api/order.ts';
+import rateHandler from '../api/rate.ts';
 
 function createMockRes() {
   const res: any = {
@@ -239,11 +240,57 @@ async function runTests() {
     console.log('✓ Test 11: Thrown fetch error returns 502 without secret leakage');
   }
 
+  // Test 12: GET /api/rate returns 200 with valid positive numeric rate
+  {
+    const req = createMockReq('GET');
+    const res = createMockRes();
+    await rateHandler(req, res);
+    assert.strictEqual(res.statusCode, 200, 'GET /api/rate should return 200');
+    assert.strictEqual(res.body?.ok, true, 'GET /api/rate should have ok: true');
+    assert.strictEqual(typeof res.body?.rate, 'number', 'rate should be a number');
+    assert.ok(res.body?.rate > 0, 'rate should be positive');
+    assert.ok(res.body?.source, 'source should be defined');
+    assert.strictEqual(typeof res.body?.timestamp, 'number', 'timestamp should be a number');
+    assert.strictEqual(res.headers['Cache-Control'], 'public, s-maxage=1800, stale-while-revalidate=86400');
+    console.log('✓ Test 12: GET /api/rate returns 200 with valid positive numeric rate');
+  }
+
+  // Test 13: POST /api/rate returns 405 Method Not Allowed
+  {
+    const req = createMockReq('POST', { foo: 'bar' });
+    const res = createMockRes();
+    await rateHandler(req, res);
+    assert.strictEqual(res.statusCode, 405, 'POST /api/rate should return 405');
+    assert.strictEqual(res.body?.error, 'Method Not Allowed');
+    assert.strictEqual(res.headers['Allow'], 'GET', 'Allow header must be GET');
+    console.log('✓ Test 13: POST /api/rate returns 405 Method Not Allowed');
+  }
+
+  // Test 14: GET /api/rate with simulated upstream fetch error returns 200 with fallback rate 13.8
+  {
+    globalThis.fetch = async () => {
+      throw new Error('Upstream FX provider unavailable');
+    };
+    try {
+      const req = createMockReq('GET');
+      const res = createMockRes();
+      await rateHandler(req, res);
+      assert.strictEqual(res.statusCode, 200, 'Fallback should return 200');
+      assert.strictEqual(res.body?.ok, true);
+      assert.strictEqual(res.body?.rate, 13.8, 'Fallback rate should be 13.8');
+      assert.strictEqual(res.body?.source, 'fallback');
+      assert.strictEqual(typeof res.body?.timestamp, 'number');
+      console.log('✓ Test 14: GET /api/rate with upstream error returns fallback rate 13.8');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  }
+
   // Restore env and fetch
   globalThis.fetch = originalFetch;
   process.env = originalEnv;
 
-  console.log('--- All 11 API Tests Passed Cleanly! ---');
+  console.log('--- All 14 API Tests Passed Cleanly! ---');
 }
 
 runTests().catch((err) => {
