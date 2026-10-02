@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test:api": "tsx tests/api.test.ts",
+    "test:chart": "tsx tests/order-chart.test.ts",
     "test:e2e": "playwright test",
     "check:budgets": "bash scripts/check-budgets.sh"
   },
