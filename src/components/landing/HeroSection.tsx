@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, ShoppingBag, Send, Code, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Send, Code, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { BackgroundBeams } from '../ui/BackgroundBeams';
 
@@ -43,28 +43,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
 
           {/* CTAs */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleOpenDemo}
-              className="gap-2 group"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Посмотреть демо</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-
             <a
               href="https://t.me/whhwheqkkwk"
               target="_blank"
               rel="noreferrer"
               className="inline-flex"
             >
-              <Button variant="secondary" size="lg" className="gap-2">
-                <Send className="w-4 h-4 text-content-secondary" />
+              <Button variant="primary" size="lg" className="gap-2">
+                <Send className="w-4 h-4" />
                 <span>Написать в Telegram</span>
               </Button>
             </a>
+
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={handleOpenDemo}
+              className="gap-2"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>Интерактивное демо</span>
+            </Button>
 
             <a
               href="https://github.com/torch817"
@@ -83,11 +82,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
           <div className="pt-4 flex items-center gap-6 text-xs text-content-muted">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-              <span>1688 / Taobao / Poizon демо</span>
+              <span>React 18 & TypeScript</span>
             </div>
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-accent" />
-              <span>Боевой деплой: Linux, CI/CD, API</span>
+              <span>Боевой деплой: Linux, CI/CD, Nginx</span>
             </div>
           </div>
         </div>

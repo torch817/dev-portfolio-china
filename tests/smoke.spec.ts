@@ -38,7 +38,7 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     const heroCanvas = page.locator('section:has(h1) canvas[aria-hidden="true"]');
     await expect(heroCanvas).toBeVisible();
 
-    const ctaButton = page.locator('button:has-text("Посмотреть демо")');
+    const ctaButton = page.locator('section:has(h1) button:has-text("демо")');
     await expect(ctaButton).toBeVisible();
     await ctaButton.click();
     await page.waitForFunction(() => window.location.pathname === '/demo');
@@ -77,7 +77,7 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await page.goto('/');
     expect(new URL(page.url()).pathname).toBe('/');
 
-    await page.click('button:has-text("Посмотреть демо")');
+    await page.click('section:has(h1) button:has-text("демо")');
     await page.waitForFunction(() => window.location.pathname === '/demo');
     expect(new URL(page.url()).pathname).toBe('/demo');
     await expect(page.locator('h1')).toContainText('Заказ товаров из Китая');

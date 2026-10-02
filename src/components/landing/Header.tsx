@@ -93,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onN
                 className="gap-2 shrink-0"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
-                <span>Демо: Китай</span>
+                <span>Интерактивное демо</span>
               </Button>
             </>
           ) : (
