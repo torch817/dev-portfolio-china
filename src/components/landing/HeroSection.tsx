@@ -25,7 +25,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
           {/* Status Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm border border-default bg-surface text-content-secondary text-xs font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse-status shrink-0" />
-            <span>Открыт к B2B заказам и разработке сервисов</span>
+            <span>Открыт к новым проектам и сотрудничеству</span>
           </div>
 
           {/* Identity & Headings */}
@@ -37,7 +37,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
               Веб-разработчик: современные сайты и сервисы под ключ
             </p>
             <p className="text-sm sm:text-base text-content-muted leading-relaxed max-w-xl">
-              Делаю быстрые, понятные сайты и веб-сервисы под задачу: от макета до боевого запуска.
+              Делаю быстрые, понятные сайты и веб-сервисы под задачу: от макета до готового запуска.
             </p>
           </div>
 
@@ -82,11 +82,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
           <div className="pt-4 flex items-center gap-6 text-xs text-content-muted">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-accent" />
-              <span>React 18 & TypeScript</span>
+              <span>Современный стек: React & TypeScript</span>
             </div>
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-accent" />
-              <span>Боевой деплой: Linux, CI/CD, Nginx</span>
+              <span>Серверная разработка и деплой</span>
             </div>
           </div>
         </div>

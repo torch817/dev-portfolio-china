@@ -20,7 +20,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo, on
 
   const flowSteps = [
     { num: '01', title: 'Ссылка', text: 'Валидация форматов 1688, Taobao и Poizon' },
-    { num: '02', title: 'Калькуляция', text: 'Курс 13.8 ₽, 5% сбор, карго 480 ₽/кг' },
+    { num: '02', title: 'Калькуляция', text: 'Реальный курс FX, 5% сбор, выбор тарифов карго' },
     { num: '03', title: 'Telegram', text: 'Мгновенный пуш заявки через Serverless API' },
     { num: '04', title: 'Статусы', text: 'Таблица трекинга от склада до выдачи в РФ' },
   ];

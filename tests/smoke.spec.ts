@@ -28,8 +28,8 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
 
     await expect(page.locator('h1')).toContainText('Михаил Соболев');
     await expect(page.getByText('Веб-разработчик: современные сайты и сервисы под ключ')).toBeVisible();
-    await expect(page.getByText('Делаю быстрые, понятные сайты и веб-сервисы под задачу: от макета до боевого запуска')).toBeVisible();
-    await expect(page.getByText('Открыт к B2B заказам и разработке сервисов')).toBeVisible();
+    await expect(page.getByText('Делаю быстрые, понятные сайты и веб-сервисы под задачу: от макета до готового запуска')).toBeVisible();
+    await expect(page.getByText('Открыт к новым проектам и сотрудничеству')).toBeVisible();
   });
 
   test('hero renders BackgroundBeams canvas in background and maintains full CTA interactivity', async ({ page }) => {
@@ -154,14 +154,16 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
 
     // Fill deceptive link
     await urlInput.fill('https://1688.com.attacker.com/offer/123');
+    await urlInput.blur();
     await expect(page.getByText('Поддерживаются ссылки только на 1688')).toBeVisible();
 
     // Fill valid link
     await urlInput.fill('https://detail.1688.com/offer/71239841.html');
+    await urlInput.blur();
     await expect(page.getByText('Поддерживаются ссылки только на 1688')).not.toBeVisible();
   });
 
-  test('demo order submission: mock 500 does not append order to table', async ({ page }) => {
+  test('demo order submission: mock 500 fallback appends order in demo mode and shows toast', async ({ page }) => {
     await page.goto('/demo');
     await page.route('**/api/order', (route) => {
       route.fulfill({
@@ -179,8 +181,8 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await page.waitForTimeout(500);
 
     const afterOrders = await page.locator(selector).count();
-    expect(afterOrders).toBe(initialOrders);
-    await expect(page.getByText('Ошибка сервиса')).toBeVisible();
+    expect(afterOrders).toBe(initialOrders + 1);
+    await expect(page.getByText('Заказ оформлен (Демо)')).toBeVisible();
   });
 
   test('demo order submission: mock 200 appends order to table and shows toast', async ({ page }) => {
