@@ -99,6 +99,83 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     expect(pageText).not.toContain('Страховка груза (2%)');
   });
 
+  test('demo calculator renders OrderChart SVG with accessible labels', async ({ page }) => {
+    await page.goto('/demo');
+    const chartSvg = page.locator('svg[role="img"][aria-label="Диаграмма структуры затрат"]');
+    await expect(chartSvg).toBeVisible();
+    await expect(chartSvg.locator('title')).toContainText('Диаграмма структуры затрат');
+  });
+
+  test('demo calculator live exchange rate toggle updates totals dynamically', async ({ page }) => {
+    await page.goto('/demo');
+
+    const rateGroup = page.locator('div[role="group"][aria-label="Выбор курса юаня"]');
+    await expect(rateGroup).toBeVisible();
+
+    const btn135 = rateGroup.locator('button:has-text("13.5")');
+    const btn138 = rateGroup.locator('button:has-text("13.8")');
+    const btn142 = rateGroup.locator('button:has-text("14.2")');
+
+    await expect(btn135).toBeVisible();
+    await expect(btn138).toBeVisible();
+    await expect(btn142).toBeVisible();
+    await expect(btn138).toHaveAttribute('aria-pressed', 'true');
+
+    let text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('6 272 ₽');
+
+    await btn135.click();
+    await expect(btn135).toHaveAttribute('aria-pressed', 'true');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('6 161 ₽');
+    expect(text).toContain('4 725 ₽');
+    expect(text).toContain('236 ₽');
+
+    await btn142.click();
+    await expect(btn142).toHaveAttribute('aria-pressed', 'true');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('6 419 ₽');
+    expect(text).toContain('4 970 ₽');
+    expect(text).toContain('249 ₽');
+
+    await btn138.click();
+    await expect(btn138).toHaveAttribute('aria-pressed', 'true');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('6 272 ₽');
+  });
+
+  test('demo calculator renders competitor comparison table and maintains zero overflow at 390px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/demo');
+
+    const table = page.locator('table');
+    await expect(table.first()).toBeVisible();
+
+    await expect(page.getByRole('columnheader', { name: 'Параметр' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Мы' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Конкурент A' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Конкурент B' })).toBeVisible();
+
+    await expect(page.getByRole('cell', { name: '5%' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '8%' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '10%' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '480 ₽' }).first()).toBeVisible();
+    await expect(page.getByRole('cell', { name: '520 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '550 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '7 184 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '7 890 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '−912 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '−1 618 ₽' })).toBeVisible();
+
+    await expect(page.getByText('Ориентир розницы на маркетплейсах РФ: ~12 000 ₽.')).toBeVisible();
+    await expect(page.getByText('Ваша чистая выгода: ~5 728 ₽ (48%).')).toBeVisible();
+
+    const hasHorizontalOverflow = await page.evaluate(() => {
+      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+    });
+    expect(hasHorizontalOverflow).toBe(false);
+  });
+
   test('demo form validates legitimate marketplace URLs and rejects deceptive domains', async ({ page }) => {
     await page.goto('/demo');
     const urlInput = page.locator('input[placeholder*="1688.com"]');

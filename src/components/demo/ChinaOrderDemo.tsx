@@ -34,6 +34,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
   const [quantity, setQuantity] = useState<number>(10);
   const [weightKg, setWeightKg] = useState<number>(2.5);
   const [comment, setComment] = useState('Черный цвет, размеры L и XL поровну');
+  const [currentRate, setCurrentRate] = useState<number>(defaultPricingConfig.cnyToRubRate || 13.8);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [urlError, setUrlError] = useState('');
 
@@ -65,7 +66,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
     setIsSubmitting(true);
     const finalUrl = validation.normalizedUrl || itemUrl;
 
-    const goodsCostRub = Math.round(cnyPrice * quantity * defaultPricingConfig.cnyToRubRate);
+    const goodsCostRub = Math.round(cnyPrice * quantity * currentRate);
     const commissionRub = Math.round(goodsCostRub * (defaultPricingConfig.commissionPercent / 100));
     const shippingRub = Math.round(weightKg * defaultPricingConfig.shippingPerKgRub);
     const totalRub = goodsCostRub + commissionRub + shippingRub;
@@ -83,7 +84,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
         goodsCostRub,
         commissionRub,
         shippingRub,
-        exchangeRate: defaultPricingConfig.cnyToRubRate,
+        exchangeRate: currentRate,
         commissionPercent: defaultPricingConfig.commissionPercent,
         shippingPerKgRub: defaultPricingConfig.shippingPerKgRub,
       },
@@ -284,6 +285,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
             quantity={quantity}
             weightKg={weightKg}
             config={defaultPricingConfig}
+            onRateChange={setCurrentRate}
           />
         </div>
       </div>
