@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, ShoppingBag, Send, Code, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { BackgroundBeams } from '../ui/BackgroundBeams';
 
 interface HeroSectionProps {
   onOpenDemo?: () => void;
@@ -18,7 +19,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenDemo, onNavigate
 
   return (
     <section className="relative py-14 lg:py-20 border-b border-default overflow-hidden">
-      <div className="max-w-[1120px] mx-auto px-5 sm:px-8">
+      <BackgroundBeams className="pointer-events-none absolute inset-0 z-0" />
+      <div className="relative z-10 max-w-[1120px] mx-auto px-5 sm:px-8">
         <div className="max-w-3xl space-y-6 text-left">
           {/* Status Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm border border-default bg-surface text-content-secondary text-xs font-medium">

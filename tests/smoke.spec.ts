@@ -32,6 +32,33 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await expect(page.getByText('Открыт к B2B заказам и разработке сервисов')).toBeVisible();
   });
 
+  test('hero renders BackgroundBeams canvas in background and maintains full CTA interactivity', async ({ page }) => {
+    await page.goto('/');
+
+    const heroCanvas = page.locator('section:has(h1) canvas[aria-hidden="true"]');
+    await expect(heroCanvas).toBeVisible();
+
+    const ctaButton = page.locator('button:has-text("Посмотреть демо")');
+    await expect(ctaButton).toBeVisible();
+    await ctaButton.click();
+    await page.waitForFunction(() => window.location.pathname === '/demo');
+    expect(new URL(page.url()).pathname).toBe('/demo');
+  });
+
+  test('hero background beams respect prefers-reduced-motion without errors', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+
+    const heroCanvas = page.locator('section:has(h1) canvas[aria-hidden="true"]');
+    await expect(heroCanvas).toBeVisible();
+
+    const hasCanvas = await page.evaluate(() => {
+      const canvas = document.querySelector('section canvas');
+      return !!canvas && canvas.getAttribute('aria-hidden') === 'true';
+    });
+    expect(hasCanvas).toBe(true);
+  });
+
   test('responsive mobile check: zero horizontal overflow at 390px', async ({ page }) => {
     await page.goto('/');
     const homeOverflow = await page.evaluate(() => {
