@@ -293,4 +293,81 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await firstReveal.scrollIntoViewIfNeeded();
     await expect(firstReveal).toHaveClass(/is-visible/);
   });
+
+  test('demo calculator delivery tariffs and wooden crate update shipping and total accurately', async ({ page }) => {
+    await page.goto('/demo');
+
+    let text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('1 200 ₽');
+    expect(text).toContain('6 272 ₽');
+
+    await page.click('button[role="radio"]:has-text("Обычное авто")');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('950 ₽');
+    expect(text).toContain('6 022 ₽');
+
+    await page.click('button[role="radio"]:has-text("Авиа")');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('2 125 ₽');
+    expect(text).toContain('7 197 ₽');
+
+    await page.check('input[type="checkbox"]');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('2 425 ₽');
+    expect(text).toContain('7 497 ₽');
+
+    await page.uncheck('input[type="checkbox"]');
+    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
+    expect(text).toContain('2 125 ₽');
+    expect(text).toContain('7 197 ₽');
+  });
+
+  test('demo form draft and order submission persist to localStorage', async ({ page }) => {
+    await page.goto('/demo');
+
+    const testComment = 'Тестовый комментарий для проверки сохранения';
+    await page.fill('textarea', testComment);
+    await page.check('input[type="checkbox"]');
+
+    const draftJson = await page.evaluate(() => localStorage.getItem('china_order_draft_v1'));
+    expect(draftJson).not.toBeNull();
+    const draft = JSON.parse(draftJson!);
+    expect(draft.comment).toBe(testComment);
+    expect(draft.woodenCrate).toBe(true);
+
+    await page.reload();
+    await expect(page.locator('textarea')).toHaveValue(testComment);
+    await expect(page.locator('input[type="checkbox"]')).toBeChecked();
+
+    await page.route('**/api/order', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, orderId: 'CN-STORAGE-01' }),
+      });
+    });
+
+    await page.click('button[type="submit"]');
+    await expect(page.getByText('Заказ успешно оформлен!')).toBeVisible();
+
+    const ordersJson = await page.evaluate(() => localStorage.getItem('china_orders_v1'));
+    expect(ordersJson).not.toBeNull();
+    const storedOrders = JSON.parse(ordersJson!);
+    expect(storedOrders.length).toBeGreaterThanOrEqual(1);
+    expect(storedOrders[0].woodenCrate).toBe(true);
+  });
+
+  test('silent /api/rate background fetch updates exchange rate without crashing or layout shift', async ({ page }) => {
+    await page.route('**/api/rate', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true, rate: 14.5, source: 'mock', timestamp: Date.now() }),
+      });
+    });
+
+    await page.goto('/demo');
+    await expect(page.getByText('5 075 ₽').first()).toBeVisible();
+    await expect(page.getByText('6 529 ₽').first()).toBeVisible();
+  });
 });

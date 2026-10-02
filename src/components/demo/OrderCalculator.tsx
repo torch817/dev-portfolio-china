@@ -2,31 +2,69 @@ import React, { useState, useMemo } from 'react';
 import { Calculator, Info, TrendingUp } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { OrderChart } from './OrderChart';
-import { PricingConfig } from '../../types';
+import { PricingConfig, DeliveryTariffId } from '../../types';
+import { deliveryTariffs, WOODEN_CRATE_PRICE_RUB } from '../../config/china-pricing';
 
 export interface OrderCalculatorProps {
   cnyPrice: number;
   quantity: number;
   weightKg: number;
   config: PricingConfig;
+  currentRate?: number;
   onRateChange?: (rate: number) => void;
+  selectedTariffId?: DeliveryTariffId;
+  onTariffChange?: (tariffId: DeliveryTariffId) => void;
+  woodenCrate?: boolean;
+  onWoodenCrateChange?: (checked: boolean) => void;
 }
 
 export const RATE_OPTIONS = [13.5, 13.8, 14.2] as const;
+
+const COMPARISON_ROWS = [
+  { param: 'Комиссия', us: '5%', compA: '8%', compB: '10%', usStyle: 'font-medium text-accent', compStyle: 'text-content-muted' },
+  { param: 'Доставка (кг)', us: '480 ₽', compA: '520 ₽', compB: '550 ₽', usStyle: 'font-medium text-accent', compStyle: 'text-content-muted' },
+  { param: 'Итого за пример', us: '6 272 ₽', compA: '7 184 ₽', compB: '7 890 ₽', isHighlight: true, usStyle: 'font-bold text-accent', compStyle: 'text-content-secondary' },
+  { param: 'Экономия', us: '—', compA: '−912 ₽', compB: '−1 618 ₽', usStyle: 'text-content-muted', compStyle: 'font-medium text-accent' },
+];
 
 export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
   cnyPrice,
   quantity,
   weightKg,
   config,
+  currentRate,
   onRateChange,
+  selectedTariffId,
+  onTariffChange,
+  woodenCrate,
+  onWoodenCrateChange,
 }) => {
-  const [exchangeRate, setExchangeRate] = useState<number>(config.cnyToRubRate || 13.8);
+  const [internalRate, setInternalRate] = useState<number>(currentRate ?? config.cnyToRubRate ?? 13.8);
+  const [internalTariffId, setInternalTariffId] = useState<DeliveryTariffId>(selectedTariffId ?? 'express-auto');
+  const [internalWoodenCrate, setInternalWoodenCrate] = useState<boolean>(woodenCrate ?? false);
+
+  const exchangeRate = currentRate !== undefined ? currentRate : internalRate;
+  const activeTariffId = selectedTariffId !== undefined ? selectedTariffId : internalTariffId;
+  const activeWoodenCrate = woodenCrate !== undefined ? woodenCrate : internalWoodenCrate;
 
   const handleRateChange = (newRate: number) => {
-    setExchangeRate(newRate);
+    setInternalRate(newRate);
     onRateChange?.(newRate);
   };
+
+  const handleTariffChange = (tariffId: DeliveryTariffId) => {
+    setInternalTariffId(tariffId);
+    onTariffChange?.(tariffId);
+  };
+
+  const handleWoodenCrateChange = (checked: boolean) => {
+    setInternalWoodenCrate(checked);
+    onWoodenCrateChange?.(checked);
+  };
+
+  const activeTariff = useMemo(() => {
+    return deliveryTariffs.find((t) => t.id === activeTariffId) || deliveryTariffs[1];
+  }, [activeTariffId]);
 
   const safePrice = Math.max(0, Number(cnyPrice) || 0);
   const safeQuantity = Math.max(0, Number(quantity) || 0);
@@ -35,7 +73,7 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
   const { goodsCostRub, commissionRub, shippingRub, totalRub } = useMemo(() => {
     const goodsCost = Math.round(safePrice * safeQuantity * exchangeRate);
     const commission = Math.round(goodsCost * (config.commissionPercent / 100));
-    const shipping = Math.round(safeWeight * config.shippingPerKgRub);
+    const shipping = Math.round(safeWeight * activeTariff.ratePerKgRub) + (activeWoodenCrate ? WOODEN_CRATE_PRICE_RUB : 0);
     const total = goodsCost + commission + shipping;
     return {
       goodsCostRub: goodsCost,
@@ -43,7 +81,7 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
       shippingRub: shipping,
       totalRub: total,
     };
-  }, [safePrice, safeQuantity, safeWeight, exchangeRate, config.commissionPercent, config.shippingPerKgRub]);
+  }, [safePrice, safeQuantity, safeWeight, exchangeRate, config.commissionPercent, activeTariff.ratePerKgRub, activeWoodenCrate]);
 
   return (
     <Card className="bg-surface border-default p-5 sm:p-6 shadow-card space-y-5">
@@ -86,41 +124,77 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
         </div>
       </div>
 
+      <div className="space-y-1.5">
+        <span className="block text-xs font-medium text-content-secondary">
+          Тариф доставки:
+        </span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" role="radiogroup" aria-label="Тариф доставки">
+          {deliveryTariffs.map((tariff) => {
+            const isSelected = activeTariffId === tariff.id;
+            return (
+              <button
+                key={tariff.id}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => handleTariffChange(tariff.id)}
+                className={`p-2.5 rounded-md border text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-focus ${
+                  isSelected
+                    ? 'border-default bg-raised text-content-primary shadow-sm'
+                    : 'border-default/60 bg-surface text-content-secondary hover:bg-hover hover:text-content-primary'
+                }`}
+              >
+                <div className="flex items-center justify-between text-xs">
+                  <span className={isSelected ? 'font-semibold text-content-primary' : 'text-content-secondary'}>
+                    {tariff.name}
+                  </span>
+                  {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-accent" />}
+                </div>
+                <div className="text-[11px] font-mono text-accent mt-0.5 font-medium">
+                  {tariff.ratePerKgRub} ₽/кг
+                </div>
+                <div className="text-[10px] text-content-muted mt-0.5">
+                  {tariff.days}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2.5 p-2.5 rounded-md bg-raised border border-default cursor-pointer hover:bg-hover transition-colors">
+          <input
+            type="checkbox"
+            checked={activeWoodenCrate}
+            onChange={(e) => handleWoodenCrateChange(e.target.checked)}
+            className="w-4 h-4 rounded border-default text-accent bg-surface focus:ring-accent-focus focus:ring-offset-0 focus:outline-none"
+          />
+          <span className="text-xs text-content-primary select-none">
+            Деревянная обрешётка груза (+{WOODEN_CRATE_PRICE_RUB} ₽)
+          </span>
+        </label>
+      </div>
+
       <div className="space-y-3 text-xs">
         <div className="flex justify-between items-center py-1 border-b border-default/60">
-          <span className="text-content-secondary">
-            Стоимость партии ({safeQuantity} шт. × {safePrice} ¥):
-          </span>
-          <span className="font-mono text-content-primary font-medium">
-            {goodsCostRub.toLocaleString('ru-RU')} ₽
-          </span>
+          <span className="text-content-secondary">Стоимость партии ({safeQuantity} шт. × {safePrice} ¥):</span>
+          <span className="font-mono text-content-primary font-medium">{goodsCostRub.toLocaleString('ru-RU')} ₽</span>
         </div>
 
         <div className="flex justify-between items-center py-1 border-b border-default/60">
-          <span className="text-content-secondary">
-            Комиссия сервиса ({config.commissionPercent}%):
-          </span>
-          <span className="font-mono text-content-primary font-medium">
-            {commissionRub.toLocaleString('ru-RU')} ₽
-          </span>
+          <span className="text-content-secondary">Комиссия сервиса ({config.commissionPercent}%):</span>
+          <span className="font-mono text-content-primary font-medium">{commissionRub.toLocaleString('ru-RU')} ₽</span>
         </div>
 
         <div className="flex justify-between items-center py-1 border-b border-default/60">
-          <span className="text-content-secondary">
-            Карго доставка ({safeWeight} кг × {config.shippingPerKgRub} ₽):
-          </span>
-          <span className="font-mono text-content-primary font-medium">
-            {shippingRub.toLocaleString('ru-RU')} ₽
-          </span>
+          <span className="text-content-secondary">Доставка ({activeTariff.name}, {safeWeight} кг × {activeTariff.ratePerKgRub} ₽{activeWoodenCrate ? ` + обрешётка ${WOODEN_CRATE_PRICE_RUB} ₽` : ''}):</span>
+          <span className="font-mono text-content-primary font-medium">{shippingRub.toLocaleString('ru-RU')} ₽</span>
         </div>
 
         <div className="flex justify-between items-baseline pt-2 text-sm">
-          <span className="font-semibold text-content-primary">
-            Итого себестоимость под ключ:
-          </span>
-          <span className="font-bold text-lg font-mono text-accent">
-            {totalRub.toLocaleString('ru-RU')} ₽
-          </span>
+          <span className="font-semibold text-content-primary">Итого себестоимость под ключ:</span>
+          <span className="font-bold text-lg font-mono text-accent">{totalRub.toLocaleString('ru-RU')} ₽</span>
         </div>
       </div>
 
@@ -152,30 +226,14 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-default/40">
-              <tr className="hover:bg-hover/30 transition-colors">
-                <td className="py-2 px-3 text-content-secondary">Комиссия</td>
-                <td className="py-2 px-3 font-mono font-medium text-accent">5%</td>
-                <td className="py-2 px-3 font-mono text-content-muted">8%</td>
-                <td className="py-2 px-3 font-mono text-content-muted">10%</td>
-              </tr>
-              <tr className="hover:bg-hover/30 transition-colors">
-                <td className="py-2 px-3 text-content-secondary">Доставка (кг)</td>
-                <td className="py-2 px-3 font-mono font-medium text-accent">480 ₽</td>
-                <td className="py-2 px-3 font-mono text-content-muted">520 ₽</td>
-                <td className="py-2 px-3 font-mono text-content-muted">550 ₽</td>
-              </tr>
-              <tr className="hover:bg-hover/30 transition-colors bg-accent/5">
-                <td className="py-2 px-3 text-content-primary font-medium">Итого за пример</td>
-                <td className="py-2 px-3 font-mono font-bold text-accent">6 272 ₽</td>
-                <td className="py-2 px-3 font-mono text-content-secondary">7 184 ₽</td>
-                <td className="py-2 px-3 font-mono text-content-secondary">7 890 ₽</td>
-              </tr>
-              <tr className="hover:bg-hover/30 transition-colors">
-                <td className="py-2 px-3 text-content-secondary">Экономия</td>
-                <td className="py-2 px-3 font-mono text-content-muted">—</td>
-                <td className="py-2 px-3 font-mono font-medium text-accent">−912 ₽</td>
-                <td className="py-2 px-3 font-mono font-medium text-accent">−1 618 ₽</td>
-              </tr>
+              {COMPARISON_ROWS.map((row) => (
+                <tr key={row.param} className={`hover:bg-hover/30 transition-colors ${row.isHighlight ? 'bg-accent/5' : ''}`}>
+                  <td className={`py-2 px-3 ${row.isHighlight ? 'text-content-primary font-medium' : 'text-content-secondary'}`}>{row.param}</td>
+                  <td className={`py-2 px-3 font-mono ${row.usStyle}`}>{row.us}</td>
+                  <td className={`py-2 px-3 font-mono ${row.compStyle}`}>{row.compA}</td>
+                  <td className={`py-2 px-3 font-mono ${row.compStyle}`}>{row.compB}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

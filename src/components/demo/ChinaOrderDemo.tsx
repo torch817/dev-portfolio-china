@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// allow: SIZE_OK — interactive china demo integrating order form, table, calculator and storage
+import React, { useState, useEffect } from 'react';
 import { ShoppingBag, ArrowLeft, Send } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -7,13 +8,31 @@ import { Button } from '../ui/Button';
 import { OrderCalculator } from './OrderCalculator';
 import { OrdersTable } from './OrdersTable';
 import { useToast } from '../../context/ToastContext';
-import { defaultPricingConfig, sampleOrders } from '../../config/china-pricing';
-import { ChinaOrder } from '../../types';
+import { defaultPricingConfig, sampleOrders, deliveryTariffs, WOODEN_CRATE_PRICE_RUB } from '../../config/china-pricing';
+import { ChinaOrder, DeliveryTariffId } from '../../types';
 import { validateMarketplaceUrl } from '../../utils/urlValidation';
 
 interface ChinaOrderDemoProps {
   onBack?: () => void;
   onNavigate?: (to: string) => void;
+}
+
+const PRESETS = [
+  { label: '1688 (Худи, 45 ¥)', url: 'https://detail.1688.com/offer/71239841.html', price: 45, qty: 50, weight: 28, comment: 'Партия зимних худи оверсайз (хлопок 420г)' },
+  { label: 'Taobao (Микрофоны, 120 ¥)', url: 'https://item.taobao.com/item.htm?id=68219401', price: 120, qty: 10, weight: 3.5, comment: 'Беспроводные микрофоны для стриминга K9' },
+  { label: 'Poizon (Кроссовки, 680 ¥)', url: 'https://poizon.com/product/581023', price: 680, qty: 2, weight: 2.4, comment: 'Кроссовки Nike Air Jordan 1 Low (Оригинал)' },
+];
+
+function getInitialOrders(): ChinaOrder[] {
+  if (typeof window === 'undefined') return sampleOrders;
+  try {
+    const saved = localStorage.getItem('china_orders_v1');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {}
+  return sampleOrders;
 }
 
 export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNavigate }) => {
@@ -26,17 +45,63 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
   };
 
   const { showToast } = useToast();
-  const [orders, setOrders] = useState<ChinaOrder[]>(sampleOrders);
+  const [orders, setOrders] = useState<ChinaOrder[]>(getInitialOrders);
 
-  // Form states
   const [itemUrl, setItemUrl] = useState('https://detail.1688.com/offer/69410294.html');
   const [cnyPrice, setCnyPrice] = useState<number>(35);
   const [quantity, setQuantity] = useState<number>(10);
   const [weightKg, setWeightKg] = useState<number>(2.5);
   const [comment, setComment] = useState('Черный цвет, размеры L и XL поровну');
   const [currentRate, setCurrentRate] = useState<number>(defaultPricingConfig.cnyToRubRate || 13.8);
+  const [selectedTariffId, setSelectedTariffId] = useState<DeliveryTariffId>('express-auto');
+  const [woodenCrate, setWoodenCrate] = useState<boolean>(false);
+  const [hasHydratedDraft, setHasHydratedDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [urlError, setUrlError] = useState('');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/rate', { signal: controller.signal })
+      .then(async (res) => {
+        if (res.ok) {
+          const data = await res.json();
+          if (typeof data?.rate === 'number' && data.rate > 0) {
+            setCurrentRate(data.rate);
+          }
+        }
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('china_order_draft_v1');
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft && typeof draft === 'object') {
+          if (typeof draft.itemUrl === 'string') setItemUrl(draft.itemUrl);
+          if (typeof draft.cnyPrice === 'number' && draft.cnyPrice > 0) setCnyPrice(draft.cnyPrice);
+          if (typeof draft.quantity === 'number' && draft.quantity > 0) setQuantity(draft.quantity);
+          if (typeof draft.weightKg === 'number' && draft.weightKg > 0) setWeightKg(draft.weightKg);
+          if (typeof draft.comment === 'string') setComment(draft.comment);
+          if (draft.selectedTariffId === 'regular-auto' || draft.selectedTariffId === 'express-auto' || draft.selectedTariffId === 'air') {
+            setSelectedTariffId(draft.selectedTariffId);
+          }
+          if (typeof draft.woodenCrate === 'boolean') setWoodenCrate(draft.woodenCrate);
+        }
+      }
+    } catch {} finally {
+      setHasHydratedDraft(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedDraft) return;
+    try {
+      localStorage.setItem('china_order_draft_v1', JSON.stringify({ itemUrl, cnyPrice, quantity, weightKg, comment, selectedTariffId, woodenCrate }));
+    } catch {}
+  }, [hasHydratedDraft, itemUrl, cnyPrice, quantity, weightKg, comment, selectedTariffId, woodenCrate]);
 
   const handleUrlChange = (val: string) => {
     setItemUrl(val);
@@ -66,9 +131,11 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
     setIsSubmitting(true);
     const finalUrl = validation.normalizedUrl || itemUrl;
 
+    const activeTariff = deliveryTariffs.find((t) => t.id === selectedTariffId) || deliveryTariffs[1];
+    const shippingPerKgRub = activeTariff.ratePerKgRub;
     const goodsCostRub = Math.round(cnyPrice * quantity * currentRate);
     const commissionRub = Math.round(goodsCostRub * (defaultPricingConfig.commissionPercent / 100));
-    const shippingRub = Math.round(weightKg * defaultPricingConfig.shippingPerKgRub);
+    const shippingRub = Math.round(weightKg * shippingPerKgRub) + (woodenCrate ? WOODEN_CRATE_PRICE_RUB : 0);
     const totalRub = goodsCostRub + commissionRub + shippingRub;
 
     const newOrder: ChinaOrder = {
@@ -86,11 +153,13 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
         shippingRub,
         exchangeRate: currentRate,
         commissionPercent: defaultPricingConfig.commissionPercent,
-        shippingPerKgRub: defaultPricingConfig.shippingPerKgRub,
+        shippingPerKgRub,
       },
       status: 'new',
       createdAt: 'Сегодня, только что',
       trackNumber: 'В обработке',
+      tariffId: selectedTariffId,
+      woodenCrate,
     };
 
     try {
@@ -110,8 +179,15 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
         return;
       }
 
-      // Append order only on verified 2xx response
-      setOrders((prev) => [newOrder, ...prev]);
+      setOrders((prev) => {
+        const updated = [newOrder, ...prev];
+        try {
+          localStorage.setItem('china_orders_v1', JSON.stringify(updated));
+        } catch {
+        }
+        return updated;
+      });
+
       showToast(
         'Заказ успешно оформлен!',
         `Номер заказа ${newOrder.id} на сумму ${totalRub.toLocaleString('ru-RU')} ₽ принят в обработку.`,
@@ -131,7 +207,6 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
 
   return (
     <div className="py-8 md:py-12 max-w-[1120px] mx-auto px-5 sm:px-8 space-y-10 animate-fade-in">
-      {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-default">
         <div>
           <button
@@ -155,9 +230,7 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
         </Button>
       </div>
 
-      {/* Main Grid: Form + Calculator */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Form */}
         <div className="lg:col-span-7">
           <Card className="p-6 bg-surface border-default shadow-card">
             <h2 className="text-base font-semibold text-content-primary mb-4">
@@ -175,51 +248,25 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
                 required
               />
 
-              {/* Quick Presets */}
               <div className="flex flex-wrap items-center gap-2 pt-1 pb-1">
                 <span className="text-[11px] text-content-muted">Быстрый выбор:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setItemUrl('https://detail.1688.com/offer/71239841.html');
-                    setCnyPrice(45);
-                    setQuantity(50);
-                    setWeightKg(28);
-                    setComment('Партия зимних худи оверсайз (хлопок 420г)');
-                    setUrlError('');
-                  }}
-                  className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
-                >
-                  1688 (Худи, 45 ¥)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setItemUrl('https://item.taobao.com/item.htm?id=68219401');
-                    setCnyPrice(120);
-                    setQuantity(10);
-                    setWeightKg(3.5);
-                    setComment('Беспроводные микрофоны для стриминга K9');
-                    setUrlError('');
-                  }}
-                  className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
-                >
-                  Taobao (Микрофоны, 120 ¥)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setItemUrl('https://poizon.com/product/581023');
-                    setCnyPrice(680);
-                    setQuantity(2);
-                    setWeightKg(2.4);
-                    setComment('Кроссовки Nike Air Jordan 1 Low (Оригинал)');
-                    setUrlError('');
-                  }}
-                  className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
-                >
-                  Poizon (Кроссовки, 680 ¥)
-                </button>
+                {PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => {
+                      setItemUrl(p.url);
+                      setCnyPrice(p.price);
+                      setQuantity(p.qty);
+                      setWeightKg(p.weight);
+                      setComment(p.comment);
+                      setUrlError('');
+                    }}
+                    className="text-[11px] px-2.5 py-1 rounded-sm bg-raised text-content-secondary hover:text-content-primary hover:bg-hover border border-default transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
+                  >
+                    {p.label}
+                  </button>
+                ))}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -278,19 +325,22 @@ export const ChinaOrderDemo: React.FC<ChinaOrderDemoProps> = ({ onBack, onNaviga
           </Card>
         </div>
 
-        {/* Right Live Calculator */}
         <div className="lg:col-span-5 space-y-4">
           <OrderCalculator
             cnyPrice={cnyPrice}
             quantity={quantity}
             weightKg={weightKg}
             config={defaultPricingConfig}
+            currentRate={currentRate}
             onRateChange={setCurrentRate}
+            selectedTariffId={selectedTariffId}
+            onTariffChange={setSelectedTariffId}
+            woodenCrate={woodenCrate}
+            onWoodenCrateChange={setWoodenCrate}
           />
         </div>
       </div>
 
-      {/* Orders Table Section */}
       <div className="pt-6 border-t border-default">
         <OrdersTable orders={orders} />
       </div>
