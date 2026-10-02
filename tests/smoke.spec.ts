@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
-  test('landing page renders all 8 sections in specified sequence', async ({ page }) => {
+  test('landing page renders all 7 sections in specified sequence', async ({ page }) => {
     await page.goto('/');
 
     const header = page.locator('header');
@@ -13,12 +13,11 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
       return Array.from(main.children).map((el) => {
         if (el.id) return el.id;
         if (el.querySelector('h1')) return 'hero';
-        if (el.textContent?.includes('B2B и e-commerce')) return 'proof';
         return el.tagName.toLowerCase();
       });
     });
 
-    expect(sections).toEqual(['hero', 'proof', 'solution', 'stack', 'approach', 'contacts']);
+    expect(sections).toEqual(['hero', 'solution', 'stack', 'approach', 'contacts']);
 
     const footer = page.locator('footer');
     await expect(footer).toBeVisible();

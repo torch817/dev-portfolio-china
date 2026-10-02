@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { ToastProvider } from './context/ToastContext';
 import { Header } from './components/landing/Header';
 import { HeroSection } from './components/landing/HeroSection';
-import { ProofSection } from './components/landing/ProofSection';
 import { ProjectsSection } from './components/landing/ProjectsSection';
 import { SkillsSection } from './components/landing/SkillsSection';
 import { AboutSection } from './components/landing/AboutSection';
@@ -49,7 +48,6 @@ export function App() {
           {currentView === 'home' ? (
             <>
               <HeroSection onNavigate={navigate} onOpenDemo={() => navigate('/demo')} />
-              <ProofSection />
               <ProjectsSection onNavigate={navigate} onOpenDemo={() => navigate('/demo')} />
               <SkillsSection />
               <AboutSection />
