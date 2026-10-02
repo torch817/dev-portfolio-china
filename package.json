@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test:api": "tsx tests/api.test.ts",
     "test:chart": "tsx tests/order-chart.test.ts",
+    "test:utils": "tsx tests/test-utils.ts",
     "test:e2e": "playwright test",
     "check:budgets": "bash scripts/check-budgets.sh"
   },

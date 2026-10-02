@@ -1,18 +1,31 @@
 import React from 'react';
-import { Package, ExternalLink } from 'lucide-react';
+import { Package, ExternalLink, RotateCcw, Trash2 } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableCell } from '../ui/Table';
 import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/Badge';
 import { ChinaOrder } from '../../types';
 
-interface OrdersTableProps {
+export interface OrdersTableProps {
   orders: ChinaOrder[];
+  onLoadOrder?: (order: ChinaOrder) => void;
+  onResetOrders?: () => void;
 }
 
-export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
+export const OrdersTable: React.FC<OrdersTableProps> = ({
+  orders,
+  onLoadOrder,
+  onResetOrders,
+}) => {
+  const handleResetHistory = () => {
+    if (window.confirm('Сбросить историю заказов к исходным?')) {
+      onResetOrders?.();
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-md bg-raised border border-default text-accent">
             <Package className="w-4 h-4" />
@@ -21,9 +34,24 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
             Журнал заказов (Интерактивная таблица)
           </h3>
         </div>
-        <span className="text-xs font-mono text-content-muted">
-          Всего: {orders.length}
-        </span>
+
+        <div className="flex items-center gap-3 self-end sm:self-auto">
+          <span className="text-xs font-mono text-content-muted">
+            Всего: {orders.length}
+          </span>
+
+          {onResetOrders && (
+            <button
+              type="button"
+              onClick={handleResetHistory}
+              className="inline-flex items-center gap-1.5 text-xs text-content-muted hover:text-red-400 p-1 rounded hover:bg-hover transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus"
+              title="Сбросить историю заказов к исходным"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Очистить историю</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Desktop Table View */}
@@ -37,6 +65,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
               <TableHead>Вес</TableHead>
               <TableHead>Итого (₽)</TableHead>
               <TableHead>Статус</TableHead>
+              <TableHead className="text-right">Действие</TableHead>
             </TableRow>
           </TableHeader>
           <tbody>
@@ -49,7 +78,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
                   </div>
                 </TableCell>
 
-                <TableCell className="max-w-[260px]">
+                <TableCell className="max-w-[240px]">
                   <div className="font-medium text-xs text-content-primary truncate">
                     {order.title || 'Товар по ссылке'}
                   </div>
@@ -57,7 +86,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
                     href={order.itemUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-hover truncate max-w-[240px] mt-0.5"
+                    className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-hover truncate max-w-[220px] mt-0.5"
                   >
                     <span className="truncate">{order.itemUrl}</span>
                     <ExternalLink className="w-3 h-3 shrink-0" />
@@ -82,6 +111,20 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
                     <div className="text-[10px] font-mono text-content-muted mt-1">
                       {order.trackNumber}
                     </div>
+                  )}
+                </TableCell>
+
+                <TableCell className="text-right whitespace-nowrap">
+                  {onLoadOrder && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-[11px] py-1 px-2.5 h-auto gap-1"
+                      onClick={() => onLoadOrder(order)}
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>В форму</span>
+                    </Button>
                   )}
                 </TableCell>
               </TableRow>
@@ -114,7 +157,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
                 href={order.itemUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-hover truncate max-w-[300px] mt-1"
+                className="inline-flex items-center gap-1 text-[11px] text-accent hover:text-accent-hover truncate max-w-[280px] mt-1"
               >
                 <span className="truncate">{order.itemUrl}</span>
                 <ExternalLink className="w-3 h-3 shrink-0" />
@@ -138,14 +181,32 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders }) => {
               </div>
             </div>
 
-            {order.trackNumber && (
-              <div className="text-[10px] font-mono text-content-muted pt-1">
-                Трек: {order.trackNumber}
-              </div>
-            )}
+            <div className="flex items-center justify-between pt-2 border-t border-default/60 text-xs">
+              {order.trackNumber ? (
+                <div className="text-[10px] font-mono text-content-muted">
+                  Трек: {order.trackNumber}
+                </div>
+              ) : (
+                <div />
+              )}
+
+              {onLoadOrder && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-[11px] py-1 px-2.5 h-auto gap-1 ml-auto"
+                  onClick={() => onLoadOrder(order)}
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>В форму</span>
+                </Button>
+              )}
+            </div>
           </Card>
         ))}
       </div>
     </div>
   );
 };
+
+export default OrdersTable;

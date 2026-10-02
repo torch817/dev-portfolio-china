@@ -1,9 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { Calculator, Info, TrendingUp } from 'lucide-react';
+import { Calculator, Info, TrendingUp, Send, Copy, Check } from 'lucide-react';
 import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { OrderChart } from './OrderChart';
 import { PricingConfig, DeliveryTariffId } from '../../types';
 import { deliveryTariffs, WOODEN_CRATE_PRICE_RUB } from '../../config/china-pricing';
+import { calculateCompetitorPrices } from '../../utils/pricing';
+import { buildTelegramOrderLink, TelegramOrderQuote } from '../../utils/telegram';
+import { useToast } from '../../context/ToastContext';
 
 export interface OrderCalculatorProps {
   cnyPrice: number;
@@ -11,21 +15,21 @@ export interface OrderCalculatorProps {
   weightKg: number;
   config: PricingConfig;
   currentRate?: number;
+  isLiveRate?: boolean;
+  rateSource?: string;
   onRateChange?: (rate: number) => void;
   selectedTariffId?: DeliveryTariffId;
   onTariffChange?: (tariffId: DeliveryTariffId) => void;
   woodenCrate?: boolean;
   onWoodenCrateChange?: (checked: boolean) => void;
+  itemUrl?: string;
+  title?: string;
+  comment?: string;
+  onDirectOrder?: () => void;
+  onCopyQuote?: () => void;
 }
 
 export const RATE_OPTIONS = [13.5, 13.8, 14.2] as const;
-
-const COMPARISON_ROWS = [
-  { param: 'Комиссия', us: '5%', compA: '8%', compB: '10%', usStyle: 'font-medium text-accent', compStyle: 'text-content-muted' },
-  { param: 'Доставка (кг)', us: '480 ₽', compA: '520 ₽', compB: '550 ₽', usStyle: 'font-medium text-accent', compStyle: 'text-content-muted' },
-  { param: 'Итого за пример', us: '6 272 ₽', compA: '7 184 ₽', compB: '7 890 ₽', isHighlight: true, usStyle: 'font-bold text-accent', compStyle: 'text-content-secondary' },
-  { param: 'Экономия', us: '—', compA: '−912 ₽', compB: '−1 618 ₽', usStyle: 'text-content-muted', compStyle: 'font-medium text-accent' },
-];
 
 export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
   cnyPrice,
@@ -33,24 +37,25 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
   weightKg,
   config,
   currentRate,
-  onRateChange,
+  isLiveRate = false,
   selectedTariffId,
   onTariffChange,
   woodenCrate,
   onWoodenCrateChange,
+  itemUrl = '',
+  title = '',
+  comment = '',
+  onDirectOrder,
+  onCopyQuote,
 }) => {
-  const [internalRate, setInternalRate] = useState<number>(currentRate ?? config.cnyToRubRate ?? 13.8);
+  const { showToast } = useToast();
   const [internalTariffId, setInternalTariffId] = useState<DeliveryTariffId>(selectedTariffId ?? 'express-auto');
   const [internalWoodenCrate, setInternalWoodenCrate] = useState<boolean>(woodenCrate ?? false);
+  const [copied, setCopied] = useState<boolean>(false);
 
-  const exchangeRate = currentRate !== undefined ? currentRate : internalRate;
+  const exchangeRate = currentRate ?? config.cnyToRubRate ?? 13.8;
   const activeTariffId = selectedTariffId !== undefined ? selectedTariffId : internalTariffId;
   const activeWoodenCrate = woodenCrate !== undefined ? woodenCrate : internalWoodenCrate;
-
-  const handleRateChange = (newRate: number) => {
-    setInternalRate(newRate);
-    onRateChange?.(newRate);
-  };
 
   const handleTariffChange = (tariffId: DeliveryTariffId) => {
     setInternalTariffId(tariffId);
@@ -83,6 +88,71 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
     };
   }, [safePrice, safeQuantity, safeWeight, exchangeRate, config.commissionPercent, activeTariff.ratePerKgRub, activeWoodenCrate]);
 
+  const competitorPrices = useMemo(() => {
+    return calculateCompetitorPrices(
+      goodsCostRub,
+      safeWeight,
+      activeTariff.ratePerKgRub,
+      activeWoodenCrate
+    );
+  }, [goodsCostRub, safeWeight, activeTariff.ratePerKgRub, activeWoodenCrate]);
+
+  const handleCopyQuote = async () => {
+    if (onCopyQuote) {
+      onCopyQuote();
+      return;
+    }
+
+    const text = [
+      '🇨🇳 Смета заказа из Китая:',
+      itemUrl ? `🔗 Товар: ${itemUrl}` : '',
+      `📦 Партия: ${safeQuantity} шт. × ${safePrice} ¥ (курс ${exchangeRate.toFixed(2)} ₽/¥)`,
+      `⚖️ Вес: ${safeWeight} кг (${activeTariff.name}${activeWoodenCrate ? ' + обрешётка' : ''})`,
+      '',
+      `• Товары: ${goodsCostRub.toLocaleString('ru-RU')} ₽`,
+      `• Комиссия (${config.commissionPercent}%): ${commissionRub.toLocaleString('ru-RU')} ₽`,
+      `• Доставка: ${shippingRub.toLocaleString('ru-RU')} ₽`,
+      `💰 Итого: ${totalRub.toLocaleString('ru-RU')} ₽`,
+      comment ? `📝 Комментарий: ${comment}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      showToast('Смета скопирована', 'Расчёт заказа успешно скопирован в буфер обмена', 'success');
+    } catch {
+      showToast('Ошибка копирования', 'Не удалось скопировать смету в буфер', 'error');
+    }
+  };
+
+  const handleDirectTelegramOrder = () => {
+    if (onDirectOrder) {
+      onDirectOrder();
+      return;
+    }
+
+    const quote: TelegramOrderQuote = {
+      itemUrl: itemUrl || 'https://detail.1688.com/offer/71239841.html',
+      title: title || 'Заказ товаров из Китая',
+      cnyPrice: safePrice,
+      quantity: safeQuantity,
+      weightKg: safeWeight,
+      rate: Number(exchangeRate.toFixed(2)),
+      goodsRub: goodsCostRub,
+      commissionRub: commissionRub,
+      shippingRub: shippingRub,
+      totalRub: totalRub,
+      comment: comment,
+    };
+
+    const link = buildTelegramOrderLink(quote);
+    window.open(link, '_blank', 'noopener,noreferrer');
+    showToast('Переход в Telegram', 'Открываем диалог для быстрого оформления выкупа', 'info');
+  };
+
   return (
     <Card className="bg-surface border-default p-5 sm:p-6 shadow-card space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-default">
@@ -95,32 +165,23 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
           </h4>
         </div>
 
+        {/* Live / Real FX indicator badge */}
         <div
-          className="flex items-center gap-1 bg-raised p-1 rounded-md border border-default self-start sm:self-auto"
-          role="group"
-          aria-label="Выбор курса юаня"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-raised border border-default text-xs font-mono self-start sm:self-auto"
+          aria-label="Текущий курс юаня"
         >
-          <span className="text-[11px] font-mono text-content-muted px-1 hidden xs:inline">
-            Курс:
+          <span
+            className={`w-2 h-2 rounded-full shrink-0 ${
+              isLiveRate ? 'bg-emerald-500 animate-pulse' : 'bg-content-muted'
+            }`}
+            aria-hidden="true"
+          />
+          <span className="text-content-primary font-medium">
+            1 ¥ = {exchangeRate.toFixed(2)} ₽
           </span>
-          {RATE_OPTIONS.map((rate) => {
-            const isActive = exchangeRate === rate;
-            return (
-              <button
-                key={rate}
-                type="button"
-                aria-pressed={isActive}
-                onClick={() => handleRateChange(rate)}
-                className={`px-2 py-0.5 text-xs font-mono rounded transition-colors focus:outline-none focus:ring-1 focus:ring-accent-focus ${
-                  isActive
-                    ? 'bg-accent text-white font-semibold shadow-sm'
-                    : 'text-content-secondary hover:text-content-primary hover:bg-hover'
-                }`}
-              >
-                {rate} ₽
-              </button>
-            );
-          })}
+          <span className="text-[10px] text-content-muted font-sans font-medium uppercase tracking-wider ml-1">
+            {isLiveRate ? 'Live FX' : 'Базовый курс'}
+          </span>
         </div>
       </div>
 
@@ -205,13 +266,14 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
         totalRub={totalRub}
       />
 
+      {/* Dynamic Competitor Comparison Table */}
       <div className="space-y-2 pt-1">
         <div className="flex items-center justify-between">
           <h5 className="text-xs font-semibold text-content-primary">
             Сравнение условий с рынком
           </h5>
           <span className="text-[11px] font-mono text-content-muted">
-            Пример: 35 ¥ × 10 шт., 2.5 кг
+            Текущий расчёт
           </span>
         </div>
 
@@ -226,9 +288,14 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-default/40">
-              {COMPARISON_ROWS.map((row) => (
-                <tr key={row.param} className={`hover:bg-hover/30 transition-colors ${row.isHighlight ? 'bg-accent/5' : ''}`}>
-                  <td className={`py-2 px-3 ${row.isHighlight ? 'text-content-primary font-medium' : 'text-content-secondary'}`}>{row.param}</td>
+              {competitorPrices.rows.map((row) => (
+                <tr
+                  key={row.param}
+                  className={`hover:bg-hover/30 transition-colors ${row.isHighlight ? 'bg-accent/5' : ''}`}
+                >
+                  <td className={`py-2 px-3 ${row.isHighlight ? 'text-content-primary font-medium' : 'text-content-secondary'}`}>
+                    {row.param}
+                  </td>
                   <td className={`py-2 px-3 font-mono ${row.usStyle}`}>{row.us}</td>
                   <td className={`py-2 px-3 font-mono ${row.compStyle}`}>{row.compA}</td>
                   <td className={`py-2 px-3 font-mono ${row.compStyle}`}>{row.compB}</td>
@@ -239,24 +306,61 @@ export const OrderCalculator: React.FC<OrderCalculatorProps> = ({
         </div>
       </div>
 
+      {/* Dynamic Savings Highlight */}
       <div className="p-3 rounded-md bg-raised border border-default text-xs text-content-secondary flex items-start gap-2.5">
         <TrendingUp className="w-4 h-4 text-accent shrink-0 mt-0.5" />
         <div>
           <span className="text-content-primary font-medium">
-            Ориентир розницы на маркетплейсах РФ: ~12 000 ₽.
+            Ориентир розницы на маркетплейсах РФ: ~{Math.round(totalRub * 1.9).toLocaleString('ru-RU')} ₽.
           </span>{' '}
           <span className="text-accent font-semibold">
-            Ваша чистая выгода: ~5 728 ₽ (48%).
+            {competitorPrices.savingsA > 0 || competitorPrices.savingsB > 0
+              ? `Экономия до ${Math.max(competitorPrices.savingsA, competitorPrices.savingsB).toLocaleString('ru-RU')} ₽ по сравнению с конкурентами.`
+              : 'Прозрачная комиссия без скрытых наценок.'}
           </span>
         </div>
+      </div>
+
+      {/* Action CTAs */}
+      <div className="pt-2 space-y-2">
+        <Button
+          type="button"
+          variant="primary"
+          className="w-full text-sm font-semibold py-3 gap-2"
+          onClick={handleDirectTelegramOrder}
+        >
+          <Send className="w-4 h-4" />
+          <span>Заказать выкуп в Telegram</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full text-xs py-2 gap-1.5 text-content-secondary hover:text-content-primary"
+          onClick={handleCopyQuote}
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-emerald-500" />
+              <span className="text-emerald-500 font-medium">Смета скопирована!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5" />
+              <span>Скопировать смету</span>
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="p-3 rounded-md bg-raised border border-default text-[11px] text-content-muted flex items-start gap-2">
         <Info className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
         <span>
-          Формула без скрытых комиссий и навязанных страховок. Доставка авто-карго со склада в Гуанчжоу / Иу до Москвы.
+          Формула без скрытых комиссий и навязанных страховок. Доставка карго со склада в Гуанчжоу / Иу до Москвы.
         </span>
       </div>
     </Card>
   );
 };
+
+export default OrderCalculator;

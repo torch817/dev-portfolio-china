@@ -92,10 +92,10 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await page.goto('/demo');
     const pageText = (await page.innerText('body')).replace(/\u00a0/g, ' ');
 
-    expect(pageText).toContain('6 272 ₽');
+    expect(pageText).toContain('5 552 ₽');
     expect(pageText).toContain('4 830 ₽');
     expect(pageText).toContain('242 ₽');
-    expect(pageText).toContain('1 200 ₽');
+    expect(pageText).toContain('480 ₽');
     expect(pageText).not.toContain('Страховка груза (2%)');
   });
 
@@ -106,42 +106,15 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await expect(chartSvg.locator('title')).toContainText('Диаграмма структуры затрат');
   });
 
-  test('demo calculator live exchange rate toggle updates totals dynamically', async ({ page }) => {
+  test('demo calculator displays real exchange rate indicator badge and updates totals', async ({ page }) => {
     await page.goto('/demo');
 
-    const rateGroup = page.locator('div[role="group"][aria-label="Выбор курса юаня"]');
-    await expect(rateGroup).toBeVisible();
-
-    const btn135 = rateGroup.locator('button:has-text("13.5")');
-    const btn138 = rateGroup.locator('button:has-text("13.8")');
-    const btn142 = rateGroup.locator('button:has-text("14.2")');
-
-    await expect(btn135).toBeVisible();
-    await expect(btn138).toBeVisible();
-    await expect(btn142).toBeVisible();
-    await expect(btn138).toHaveAttribute('aria-pressed', 'true');
+    const rateBadge = page.locator('div[aria-label="Текущий курс юаня"]');
+    await expect(rateBadge).toBeVisible();
+    await expect(rateBadge).toContainText('1 ¥ = 13.80 ₽');
 
     let text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('6 272 ₽');
-
-    await btn135.click();
-    await expect(btn135).toHaveAttribute('aria-pressed', 'true');
-    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('6 161 ₽');
-    expect(text).toContain('4 725 ₽');
-    expect(text).toContain('236 ₽');
-
-    await btn142.click();
-    await expect(btn142).toHaveAttribute('aria-pressed', 'true');
-    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('6 419 ₽');
-    expect(text).toContain('4 970 ₽');
-    expect(text).toContain('249 ₽');
-
-    await btn138.click();
-    await expect(btn138).toHaveAttribute('aria-pressed', 'true');
-    text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('6 272 ₽');
+    expect(text).toContain('5 552 ₽');
   });
 
   test('demo calculator renders competitor comparison table and maintains zero overflow at 390px', async ({ page }) => {
@@ -162,13 +135,12 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await expect(page.getByRole('cell', { name: '480 ₽' }).first()).toBeVisible();
     await expect(page.getByRole('cell', { name: '520 ₽' })).toBeVisible();
     await expect(page.getByRole('cell', { name: '550 ₽' })).toBeVisible();
-    await expect(page.getByRole('cell', { name: '7 184 ₽' })).toBeVisible();
-    await expect(page.getByRole('cell', { name: '7 890 ₽' })).toBeVisible();
-    await expect(page.getByRole('cell', { name: '−912 ₽' })).toBeVisible();
-    await expect(page.getByRole('cell', { name: '−1 618 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '5 736 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '5 863 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '−184 ₽' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '−311 ₽' })).toBeVisible();
 
-    await expect(page.getByText('Ориентир розницы на маркетплейсах РФ: ~12 000 ₽.')).toBeVisible();
-    await expect(page.getByText('Ваша чистая выгода: ~5 728 ₽ (48%).')).toBeVisible();
+    await expect(page.getByText('Ориентир розницы на маркетплейсах РФ')).toBeVisible();
 
     const hasHorizontalOverflow = await page.evaluate(() => {
       return document.documentElement.scrollWidth > document.documentElement.clientWidth;
@@ -298,28 +270,28 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     await page.goto('/demo');
 
     let text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('1 200 ₽');
-    expect(text).toContain('6 272 ₽');
+    expect(text).toContain('480 ₽');
+    expect(text).toContain('5 552 ₽');
 
     await page.click('button[role="radio"]:has-text("Обычное авто")');
     text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('950 ₽');
-    expect(text).toContain('6 022 ₽');
+    expect(text).toContain('380 ₽');
+    expect(text).toContain('5 452 ₽');
 
     await page.click('button[role="radio"]:has-text("Авиа")');
     text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('2 125 ₽');
-    expect(text).toContain('7 197 ₽');
+    expect(text).toContain('850 ₽');
+    expect(text).toContain('5 922 ₽');
 
     await page.check('input[type="checkbox"]');
     text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('2 425 ₽');
-    expect(text).toContain('7 497 ₽');
+    expect(text).toContain('1 150 ₽');
+    expect(text).toContain('6 222 ₽');
 
     await page.uncheck('input[type="checkbox"]');
     text = (await page.innerText('body')).replace(/\u00a0/g, ' ');
-    expect(text).toContain('2 125 ₽');
-    expect(text).toContain('7 197 ₽');
+    expect(text).toContain('850 ₽');
+    expect(text).toContain('5 922 ₽');
   });
 
   test('demo form draft and order submission persist to localStorage', async ({ page }) => {
@@ -368,6 +340,6 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
 
     await page.goto('/demo');
     await expect(page.getByText('5 075 ₽').first()).toBeVisible();
-    await expect(page.getByText('6 529 ₽').first()).toBeVisible();
+    await expect(page.getByText('5 809 ₽').first()).toBeVisible();
   });
 });
