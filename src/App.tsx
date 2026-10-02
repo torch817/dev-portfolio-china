@@ -39,6 +39,45 @@ export function App() {
 
   const currentView = getRouteView(currentPath);
 
+  useEffect(() => {
+    if (currentView !== 'home') {
+      return;
+    }
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const elements = document.querySelectorAll('.reveal-on-scroll');
+
+    if (prefersReducedMotion || typeof IntersectionObserver === 'undefined') {
+      elements.forEach((el) => el.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px',
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [currentView]);
+
   return (
     <ToastProvider>
       <div className="relative min-h-screen flex flex-col justify-between bg-canvas">
@@ -48,10 +87,14 @@ export function App() {
           {currentView === 'home' ? (
             <>
               <HeroSection onNavigate={navigate} onOpenDemo={() => navigate('/demo')} />
-              <ProjectsSection onNavigate={navigate} onOpenDemo={() => navigate('/demo')} />
-              <SkillsSection />
-              <AboutSection />
-              <ContactsSection />
+              <ProjectsSection
+                className="reveal-on-scroll"
+                onNavigate={navigate}
+                onOpenDemo={() => navigate('/demo')}
+              />
+              <SkillsSection className="reveal-on-scroll" />
+              <AboutSection className="reveal-on-scroll" />
+              <ContactsSection className="reveal-on-scroll" />
             </>
           ) : (
             <ChinaOrderDemo onNavigate={navigate} onBack={() => navigate('/')} />

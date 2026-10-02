@@ -2,7 +2,11 @@ import React from 'react';
 import { Layout, Server, Rocket, CheckCircle2 } from 'lucide-react';
 import { Card } from '../ui/Card';
 
-export const SkillsSection: React.FC = () => {
+interface SkillsSectionProps {
+  className?: string;
+}
+
+export const SkillsSection: React.FC<SkillsSectionProps> = ({ className = '' }) => {
   const stackGroups = [
     {
       title: 'Фронтенд',
@@ -28,7 +32,7 @@ export const SkillsSection: React.FC = () => {
   ];
 
   return (
-    <section id="stack" className="py-14 lg:py-20 border-b border-default bg-canvas scroll-mt-16">
+    <section id="stack" className={`py-14 lg:py-20 border-b border-default bg-canvas ${className}`.trim()}>
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8 space-y-8">
         <div>
           <div className="text-xs uppercase tracking-wider text-accent font-mono mb-2">

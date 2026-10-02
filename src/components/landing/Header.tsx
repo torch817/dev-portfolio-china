@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, setCurrentView, onN
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-default bg-canvas/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-default bg-canvas/90 backdrop-blur-md">
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
         <button
           onClick={() => {

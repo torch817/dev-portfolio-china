@@ -3,7 +3,11 @@ import { Send, Mail, Code, ArrowUpRight, MessageSquare } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
-export const ContactsSection: React.FC = () => {
+interface ContactsSectionProps {
+  className?: string;
+}
+
+export const ContactsSection: React.FC<ContactsSectionProps> = ({ className = '' }) => {
   const contactCards = [
     {
       title: 'Telegram',
@@ -29,7 +33,7 @@ export const ContactsSection: React.FC = () => {
   ];
 
   return (
-    <section id="contacts" className="py-14 lg:py-20 border-b border-default bg-canvas scroll-mt-16">
+    <section id="contacts" className={`py-14 lg:py-20 border-b border-default bg-canvas ${className}`.trim()}>
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8 space-y-8">
         <div>
           <div className="text-xs uppercase tracking-wider text-accent font-mono mb-2">

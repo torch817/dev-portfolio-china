@@ -254,4 +254,43 @@ test.describe('Dev Portfolio & China Sourcing Smoke Test Suite', () => {
     });
     expect(parseFloat(animationDuration) || 0).toBeLessThanOrEqual(0.01);
   });
+
+  test('header has sticky positioning and z-50 stack layer', async ({ page }) => {
+    await page.goto('/');
+    const header = page.locator('header');
+    await expect(header).toBeVisible();
+    const { position, zIndex } = await header.evaluate((el) => {
+      const cs = window.getComputedStyle(el);
+      return { position: cs.position, zIndex: cs.zIndex };
+    });
+    expect(position).toBe('sticky');
+    expect(zIndex).toBe('50');
+  });
+
+  test('scroll behavior and anchor section scroll-margin-top configured correctly', async ({ page }) => {
+    await page.goto('/');
+    const { scrollBehavior, solutionScrollMargin, stackScrollMargin } = await page.evaluate(() => {
+      const htmlStyle = window.getComputedStyle(document.documentElement);
+      const solutionEl = document.querySelector('section#solution');
+      const stackEl = document.querySelector('section#stack');
+      return {
+        scrollBehavior: htmlStyle.scrollBehavior,
+        solutionScrollMargin: solutionEl ? window.getComputedStyle(solutionEl).scrollMarginTop : '',
+        stackScrollMargin: stackEl ? window.getComputedStyle(stackEl).scrollMarginTop : '',
+      };
+    });
+    expect(scrollBehavior).toBe('smooth');
+    expect(solutionScrollMargin).toBe('80px');
+    expect(stackScrollMargin).toBe('80px');
+  });
+
+  test('reveal-on-scroll elements wire correctly and gain is-visible class', async ({ page }) => {
+    await page.goto('/');
+    const revealCount = await page.locator('.reveal-on-scroll').count();
+    expect(revealCount).toBeGreaterThanOrEqual(4);
+
+    const firstReveal = page.locator('.reveal-on-scroll').first();
+    await firstReveal.scrollIntoViewIfNeeded();
+    await expect(firstReveal).toHaveClass(/is-visible/);
+  });
 });

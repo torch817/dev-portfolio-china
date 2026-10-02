@@ -6,9 +6,10 @@ import { Button } from '../ui/Button';
 interface ProjectsSectionProps {
   onOpenDemo?: () => void;
   onNavigate?: (to: string) => void;
+  className?: string;
 }
 
-export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo, onNavigate }) => {
+export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo, onNavigate, className = '' }) => {
   const handleOpenDemo = () => {
     if (onNavigate) {
       onNavigate('/demo');
@@ -34,7 +35,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenDemo, on
   ];
 
   return (
-    <section id="solution" className="py-14 lg:py-20 border-b border-default bg-canvas scroll-mt-16">
+    <section id="solution" className={`py-14 lg:py-20 border-b border-default bg-canvas ${className}`.trim()}>
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8 space-y-8">
         <div>
           <div className="text-xs uppercase tracking-wider text-accent font-mono mb-2">

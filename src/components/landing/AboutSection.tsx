@@ -2,7 +2,11 @@ import React from 'react';
 import { ShieldCheck, Cpu, CheckCircle } from 'lucide-react';
 import { Card } from '../ui/Card';
 
-export const AboutSection: React.FC = () => {
+interface AboutSectionProps {
+  className?: string;
+}
+
+export const AboutSection: React.FC<AboutSectionProps> = ({ className = '' }) => {
   const principles = [
     {
       num: '01',
@@ -25,7 +29,7 @@ export const AboutSection: React.FC = () => {
   ];
 
   return (
-    <section id="approach" className="py-14 lg:py-20 border-b border-default bg-canvas scroll-mt-16">
+    <section id="approach" className={`py-14 lg:py-20 border-b border-default bg-canvas ${className}`.trim()}>
       <div className="max-w-[1120px] mx-auto px-5 sm:px-8 space-y-8">
         <div>
           <div className="text-xs uppercase tracking-wider text-accent font-mono mb-2">
