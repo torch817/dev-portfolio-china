@@ -1,5 +1,3 @@
-import { WOODEN_CRATE_PRICE_RUB } from '../config/china-pricing';
-
 export interface ChartSlice {
   key: 'goods' | 'shipping' | 'commission';
   label: string;
@@ -16,14 +14,26 @@ export interface NormalizedChartData {
   segments: ChartSlice[];
 }
 
+export interface CompetitorComparison {
+  param: string;
+  us: string;
+  compA: string;
+  compB: string;
+  isHighlight?: boolean;
+  usStyle?: string;
+  compStyle?: string;
+}
+
+export type CompetitorComparisonRow = CompetitorComparison;
+
 export const CHART_COLORS = {
   goods: '#3b82f6',
-  shipping: '#94a3b8',
   commission: '#60a5fa',
+  shipping: '#94a3b8',
 } as const;
 
 export const RADIUS = 46;
-export const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+export const CIRCUMFERENCE = 2 * Math.PI * RADIUS; // ~289.027
 
 export function normalizeChartSlices(
   goodsRub: number,
@@ -33,9 +43,9 @@ export function normalizeChartSlices(
   const safeGoods = Math.max(0, Number.isFinite(goodsRub) ? goodsRub : 0);
   const safeShipping = Math.max(0, Number.isFinite(shippingRub) ? shippingRub : 0);
   const safeCommission = Math.max(0, Number.isFinite(commissionRub) ? commissionRub : 0);
-  const total = safeGoods + safeShipping + safeCommission;
+  const totalRub = safeGoods + safeShipping + safeCommission;
 
-  if (total <= 0) {
+  if (totalRub <= 0) {
     return {
       hasData: false,
       totalRub: 0,
@@ -46,16 +56,7 @@ export function normalizeChartSlices(
           amountRub: 0,
           percent: 0,
           color: CHART_COLORS.goods,
-          dashArray: `0 ${CIRCUMFERENCE}`,
-          dashOffset: 0,
-        },
-        {
-          key: 'shipping',
-          label: 'Доставка',
-          amountRub: 0,
-          percent: 0,
-          color: CHART_COLORS.shipping,
-          dashArray: `0 ${CIRCUMFERENCE}`,
+          dashArray: '0 289.026',
           dashOffset: 0,
         },
         {
@@ -64,28 +65,37 @@ export function normalizeChartSlices(
           amountRub: 0,
           percent: 0,
           color: CHART_COLORS.commission,
-          dashArray: `0 ${CIRCUMFERENCE}`,
+          dashArray: '0 289.026',
+          dashOffset: 0,
+        },
+        {
+          key: 'shipping',
+          label: 'Доставка',
+          amountRub: 0,
+          percent: 0,
+          color: CHART_COLORS.shipping,
+          dashArray: '0 289.026',
           dashOffset: 0,
         },
       ],
     };
   }
 
-  const goodsRatio = safeGoods / total;
-  const shippingRatio = safeShipping / total;
-  const commissionRatio = safeCommission / total;
-
-  const goodsLen = goodsRatio * CIRCUMFERENCE;
-  const shippingLen = shippingRatio * CIRCUMFERENCE;
-  const commissionLen = commissionRatio * CIRCUMFERENCE;
+  const goodsRatio = safeGoods / totalRub;
+  const commissionRatio = safeCommission / totalRub;
+  const shippingRatio = safeShipping / totalRub;
 
   const goodsPct = Math.round(goodsRatio * 100);
   const commPct = Math.round(commissionRatio * 100);
   const shipPct = Math.max(0, 100 - goodsPct - commPct);
 
+  const goodsLen = goodsRatio * CIRCUMFERENCE;
+  const commissionLen = commissionRatio * CIRCUMFERENCE;
+  const shippingLen = shippingRatio * CIRCUMFERENCE;
+
   return {
     hasData: true,
-    totalRub: total,
+    totalRub,
     segments: [
       {
         key: 'goods',
@@ -97,35 +107,25 @@ export function normalizeChartSlices(
         dashOffset: 0,
       },
       {
-        key: 'shipping',
-        label: 'Доставка',
-        amountRub: safeShipping,
-        percent: shipPct,
-        color: CHART_COLORS.shipping,
-        dashArray: `${shippingLen} ${CIRCUMFERENCE}`,
-        dashOffset: -goodsLen,
-      },
-      {
         key: 'commission',
         label: 'Комиссия',
         amountRub: safeCommission,
         percent: commPct,
         color: CHART_COLORS.commission,
         dashArray: `${commissionLen} ${CIRCUMFERENCE}`,
-        dashOffset: -(goodsLen + shippingLen),
+        dashOffset: -goodsLen,
+      },
+      {
+        key: 'shipping',
+        label: 'Доставка',
+        amountRub: safeShipping,
+        percent: shipPct,
+        color: CHART_COLORS.shipping,
+        dashArray: `${shippingLen} ${CIRCUMFERENCE}`,
+        dashOffset: -(goodsLen + commissionLen),
       },
     ],
   };
-}
-
-export interface CompetitorComparisonRow {
-  param: string;
-  us: string;
-  compA: string;
-  compB: string;
-  isHighlight?: boolean;
-  usStyle?: string;
-  compStyle?: string;
 }
 
 export function calculateCompetitorPrices(
@@ -139,32 +139,32 @@ export function calculateCompetitorPrices(
   compBTotal: number;
   savingsA: number;
   savingsB: number;
-  rows: CompetitorComparisonRow[];
+  rows: CompetitorComparison[];
 } {
   const safeGoods = Math.max(0, Number.isFinite(goodsRub) ? goodsRub : 0);
   const safeWeight = Math.max(0, Number.isFinite(weightKg) ? weightKg : 0);
   const safeTariff = Math.max(0, Number.isFinite(tariffRatePerKg) ? tariffRatePerKg : 0);
-  const crateCost = woodenCrate ? WOODEN_CRATE_PRICE_RUB : 0;
+  const isCrate = Boolean(woodenCrate);
 
-  // Us: 5% commission, safeTariff per kg
-  const ourCommission = Math.round(safeGoods * 0.05);
-  const ourShipping = Math.round(safeWeight * safeTariff) + crateCost;
-  const ourTotal = safeGoods + ourCommission + ourShipping;
+  // Our cost: 5% commission, tariffRatePerKg, +300 ₽ crate if selected
+  const ourShipping = Math.round(safeWeight * safeTariff) + (isCrate ? 300 : 0);
+  const ourComm = Math.round(safeGoods * 0.05);
+  const ourTotal = safeGoods + ourComm + ourShipping;
 
-  // Comp A: 8% commission, +40 ₽/kg
-  const compACommission = Math.round(safeGoods * 0.08);
-  const compAShipping = Math.round(safeWeight * (safeTariff + 40)) + crateCost;
-  const compATotal = safeGoods + compACommission + compAShipping;
+  // Comp A: 8% comm, +40 ₽/kg markup, +400 ₽ crate if selected
+  const compAShipping = Math.round(safeWeight * (safeTariff + 40)) + (isCrate ? 400 : 0);
+  const compAComm = Math.round(safeGoods * 0.08);
+  const compATotal = safeGoods + compAComm + compAShipping;
 
-  // Comp B: 10% commission, +70 ₽/kg
-  const compBCommission = Math.round(safeGoods * 0.10);
-  const compBShipping = Math.round(safeWeight * (safeTariff + 70)) + crateCost;
-  const compBTotal = safeGoods + compBCommission + compBShipping;
+  // Comp B: 10% comm, +70 ₽/kg markup, +500 ₽ crate if selected
+  const compBShipping = Math.round(safeWeight * (safeTariff + 70)) + (isCrate ? 500 : 0);
+  const compBComm = Math.round(safeGoods * 0.10);
+  const compBTotal = safeGoods + compBComm + compBShipping;
 
-  const savingsA = compATotal - ourTotal;
-  const savingsB = compBTotal - ourTotal;
+  const savingsA = Math.max(0, compATotal - ourTotal);
+  const savingsB = Math.max(0, compBTotal - ourTotal);
 
-  const rows: CompetitorComparisonRow[] = [
+  const rows: CompetitorComparison[] = [
     {
       param: 'Комиссия',
       us: '5%',
@@ -193,8 +193,8 @@ export function calculateCompetitorPrices(
     {
       param: 'Экономия',
       us: '—',
-      compA: savingsA > 0 ? `−${savingsA.toLocaleString('ru-RU')} ₽` : `${savingsA.toLocaleString('ru-RU')} ₽`,
-      compB: savingsB > 0 ? `−${savingsB.toLocaleString('ru-RU')} ₽` : `${savingsB.toLocaleString('ru-RU')} ₽`,
+      compA: savingsA > 0 ? `−${savingsA.toLocaleString('ru-RU')} ₽` : '0 ₽',
+      compB: savingsB > 0 ? `−${savingsB.toLocaleString('ru-RU')} ₽` : '0 ₽',
       usStyle: 'text-content-muted',
       compStyle: 'font-medium text-accent',
     },

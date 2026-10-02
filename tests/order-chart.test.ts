@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { OrderChart } from '../src/components/demo/OrderChart.tsx';
+import { normalizeChartSlices, CIRCUMFERENCE } from '../src/utils/pricing.ts';
 
 function runTests() {
   console.log('--- Starting OrderChart Unit & Smoke Tests ---');
@@ -35,17 +36,47 @@ function runTests() {
     assert(html.includes('Доставка'), 'Legend should include Доставка');
 
     // Check colors
-    assert(html.includes('#3b82f6'), 'Should use accent color #3b82f6 for goods');
-    assert(html.includes('#60a5fa'), 'Should use status blue #60a5fa for commission');
-    assert(html.includes('#94a3b8'), 'Should use neutral status #94a3b8 for shipping');
+    assert(html.includes('#3b82f6'), 'Should use blue #3b82f6 for goods');
+    assert(html.includes('#60a5fa'), 'Should use light blue #60a5fa for commission');
+    assert(html.includes('#94a3b8'), 'Should use slate #94a3b8 for shipping');
 
-    // Check no NaN in SVG attributes
+    // Center display
+    assert(html.includes('Итого'), 'Center should include label "Итого"');
+    assert(html.includes('6 272 ₽') || html.includes('6 272 ₽'), 'Center should display formatted total');
+
+    // Check no NaN in SVG attributes or text
     assert(!html.includes('NaN'), 'Rendered SVG must not contain NaN');
 
-    console.log('✓ Test 1: Standard cost breakdown renders SVG correctly with a11y attributes');
+    console.log('✓ Test 1: Standard cost breakdown renders SVG correctly with accessible attributes');
   }
 
-  // Test 2: Zero values / zero total renders placeholder without NaN or errors
+  // Test 2: Slices strictly sum to 100% across multiple input distributions
+  {
+    const testCases = [
+      { goods: 4830, shipping: 1200, comm: 242 },
+      { goods: 100, shipping: 100, comm: 100 },
+      { goods: 333, shipping: 333, comm: 334 },
+      { goods: 9999, shipping: 1, comm: 1 },
+      { goods: 1, shipping: 1, comm: 9998 },
+      { goods: 1250000, shipping: 350000, comm: 62500 },
+      { goods: 7, shipping: 13, comm: 29 },
+    ];
+
+    for (const { goods, shipping, comm } of testCases) {
+      const data = normalizeChartSlices(goods, shipping, comm);
+      assert.strictEqual(data.hasData, true);
+      const totalPercent = data.segments.reduce((acc, s) => acc + s.percent, 0);
+      assert.strictEqual(
+        totalPercent,
+        100,
+        `Slices for (${goods}, ${shipping}, ${comm}) must strictly sum to 100%, got ${totalPercent}`
+      );
+    }
+
+    console.log('✓ Test 2: Slices strictly sum to 100% across all distribution test cases');
+  }
+
+  // Test 3: Zero values / zero total renders placeholder without NaN or errors
   {
     const html = renderToStaticMarkup(
       React.createElement(OrderChart, {
@@ -63,35 +94,71 @@ function runTests() {
       'Zero-state should have descriptive title indicating no data'
     );
     assert(!html.includes('NaN'), 'Zero-state must not generate NaN values in dasharray or text');
+    assert(
+      html.includes('stroke-dasharray="0 289.'),
+      'Zero-state circles should have stroke-dasharray="0 289..."'
+    );
 
-    console.log('✓ Test 2: Zero state renders cleanly without NaN');
+    console.log('✓ Test 3: Zero state renders cleanly without NaN');
   }
 
-  // Test 3: Segment calculation math and dash offset ordering
+  // Test 4: Segmented Horizontal Distribution Bar renders without errors
+  {
+    const html = renderToStaticMarkup(
+      React.createElement(OrderChart, {
+        goodsCostRub: 4830,
+        shippingRub: 1200,
+        commissionRub: 242,
+        totalRub: 6272,
+      })
+    );
+
+    assert(html.includes('role="progressbar"'), 'Distribution bar should include role="progressbar"');
+    assert(
+      html.includes('aria-label="Распределение затрат"'),
+      'Distribution bar should have aria-label'
+    );
+    assert(
+      html.includes('h-3 w-full rounded-full overflow-hidden flex bg-surface border border-default'),
+      'Distribution bar container should match expected style classes'
+    );
+
+    // 4830 / 6272 = 77% (>= 8% -> visible text)
+    // 1200 / 6272 = 19% (>= 8% -> visible text)
+    // 242 / 6272 = 4% (< 8% -> hidden text inside bar)
+    assert(html.includes('>77%<'), 'Segment >= 8% should display internal text label');
+    assert(html.includes('>19%<'), 'Segment >= 8% should display internal text label');
+    assert(!html.includes('>4%<'), 'Segment < 8% should hide internal text label to prevent clipping');
+
+    console.log('✓ Test 4: Horizontal distribution bar renders without errors and respects >= 8% threshold');
+  }
+
+  // Test 5: Segment calculation math and dash offset ordering
   {
     const html = renderToStaticMarkup(
       React.createElement(OrderChart, {
         goodsCostRub: 5000,
-        commissionRub: 2500,
         shippingRub: 2500,
+        commissionRub: 2500,
         totalRub: 10000,
       })
     );
 
-    // 50% goods, 25% commission, 25% shipping
+    // 50% goods, 25% shipping, 25% commission
     assert(html.includes('(50%)'), 'Goods should be 50%');
-    assert(html.includes('(25%)'), 'Commission should be 25%');
+    assert(html.includes('(25%)'), 'Shipping / commission should be 25%');
 
-    // Circumference ~ 289.03
+    // Circumference ~ 289.026...
     // Goods length ~ 144.51
     assert(html.includes('stroke-dasharray="144.'), 'First segment should cover ~50% of circumference');
     assert(html.includes('stroke-dashoffset="0"'), 'First segment starts at offset 0');
     assert(html.includes('stroke-dashoffset="-144.'), 'Second segment offset matches first segment length');
+    assert(html.includes('stroke-dashoffset="-216.'), 'Third segment offset matches goods + shipping length');
 
-    console.log('✓ Test 3: Accurate proportional stroke-dasharray and offsets');
+    console.log('✓ Test 5: Accurate proportional stroke-dasharray and offsets ordering');
   }
 
-  // Test 4: Reduced motion and transition utility check
+  // Test 6: Reduced motion and transition utility check
   {
     const html = renderToStaticMarkup(
       React.createElement(OrderChart, {
@@ -105,17 +172,17 @@ function runTests() {
 
     assert(
       html.includes('motion-reduce:transition-none'),
-      'SVG circles should include motion-reduce:transition-none for a11y'
+      'SVG circles and bars should include motion-reduce:transition-none for a11y'
     );
     assert(
       html.includes('custom-chart-class'),
       'Component should pass custom className to root container'
     );
 
-    console.log('✓ Test 4: Reduced motion class and custom className support verified');
+    console.log('✓ Test 6: Reduced motion class and custom className support verified');
   }
 
-  console.log('--- All OrderChart Unit & Smoke Tests Passed Successfully ---');
+  console.log('--- All 6 OrderChart Unit & Smoke Tests Passed Successfully ---');
 }
 
 runTests();
